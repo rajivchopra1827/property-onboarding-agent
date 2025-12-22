@@ -15,6 +15,7 @@ import os
 import json
 from openai import OpenAI
 from .crawl_property_website import execute as crawl_property_website
+from database import PropertyRepository, Property
 
 
 def get_openai_client():
@@ -227,7 +228,8 @@ def execute(arguments):
             "address": None,
             "phone_number": None,
             "email_address": None,
-            "office_hours": None
+            "office_hours": None,
+            "property_id": None
         }
     
     # If URL is provided, get markdown by calling crawl_property_website
@@ -248,7 +250,8 @@ def execute(arguments):
                 "address": None,
                 "phone_number": None,
                 "email_address": None,
-                "office_hours": None
+                "office_hours": None,
+                "property_id": None
             }
         
         if "cache_available" in crawl_result and crawl_result["cache_available"]:
@@ -262,7 +265,8 @@ def execute(arguments):
                 "address": None,
                 "phone_number": None,
                 "email_address": None,
-                "office_hours": None
+                "office_hours": None,
+                "property_id": None
             }
         
         # Get markdown from crawl result
@@ -274,7 +278,8 @@ def execute(arguments):
                 "address": None,
                 "phone_number": None,
                 "email_address": None,
-                "office_hours": None
+                "office_hours": None,
+                "property_id": None
             }
     
     # Extract structured data from markdown
@@ -290,7 +295,8 @@ def execute(arguments):
                 "address": None,
                 "phone_number": None,
                 "email_address": None,
-                "office_hours": None
+                "office_hours": None,
+                "property_id": None
             }
         
         # Ensure we have the expected structure
@@ -353,8 +359,51 @@ def execute(arguments):
             print(f"Office Hours: Not found")
         
         print("=" * 60)
+        
+        # Save to database
+        property_id = None
+        try:
+            property_repo = PropertyRepository()
+            
+            # Create Property model from extracted data
+            address = final_result.get("address", {})
+            property_model = Property(
+                property_name=final_result.get("property_name"),
+                street_address=address.get("street") if address else None,
+                city=address.get("city") if address else None,
+                state=address.get("state") if address else None,
+                zip_code=address.get("zip_code") if address else None,
+                phone=final_result.get("phone_number"),
+                email=final_result.get("email_address"),
+                office_hours=final_result.get("office_hours"),
+                website_url=url if url else None
+            )
+            
+            # Create or update property in database
+            property_id = property_repo.create_or_update_property(property_model)
+            
+            if property_id:
+                print(f"✓ Saved property information to database (ID: {property_id})")
+                
+                # Create extraction session record
+                property_repo.create_extraction_session(
+                    property_id=property_id,
+                    website_url=url if url else "unknown",
+                    status="completed"
+                )
+            else:
+                print("⚠ Warning: Failed to save property information to database")
+        except Exception as db_error:
+            print(f"⚠ Warning: Error saving to database: {db_error}")
+            # Don't fail the extraction if database save fails
+        
         print(f"[Tool Execution Complete]")
-        return final_result
+        
+        # Include property_id in the return value so other tools can use it
+        return {
+            **final_result,
+            "property_id": property_id
+        }
     
     except ValueError as e:
         # API key missing or other value errors
@@ -365,7 +414,8 @@ def execute(arguments):
             "address": None,
             "phone_number": None,
             "email_address": None,
-            "office_hours": None
+            "office_hours": None,
+            "property_id": None
         }
     
     except Exception as e:
@@ -379,6 +429,7 @@ def execute(arguments):
             "address": None,
             "phone_number": None,
             "email_address": None,
-            "office_hours": None
+            "office_hours": None,
+            "property_id": None
         }
 

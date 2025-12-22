@@ -15,10 +15,18 @@ __pycache__/
 # IDE
 .vscode/
 .idea/
+.cursor/
 *.swp
 *.swo
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Supabase local files
+supabase/.branches
+supabase/.temp
+supabase/logs
+supabase/.volumes
+
 
