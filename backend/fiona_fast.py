@@ -130,17 +130,11 @@ When asked about your capabilities, provide a clear and helpful explanation of w
 
 def main():
     """Main function to run the FionaFast agent."""
-    # Load environment variables from .env.local or .env file
-    # Check current directory first, then parent directory (project root)
-    env_file = Path(".env.local")
+    # Load environment variables from project root .env.local or .env file
+    project_root = Path(__file__).parent.parent
+    env_file = project_root / ".env.local"
     if not env_file.exists():
-        env_file = Path(".env")
-    
-    # If not found in current directory, check parent directory (project root)
-    if not env_file.exists():
-        env_file = Path("../.env.local")
-        if not env_file.exists():
-            env_file = Path("../.env")
+        env_file = project_root / ".env"
     
     if env_file.exists():
         load_dotenv(env_file)

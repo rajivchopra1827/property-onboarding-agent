@@ -75,8 +75,11 @@ import sys
 from dotenv import load_dotenv
 from pathlib import Path
 
-# Load environment variables
-env_file = Path(".env.local") or Path(".env")
+# Load environment variables from project root .env.local or .env file
+project_root = Path(__file__).parent.parent.parent
+env_file = project_root / ".env.local"
+if not env_file.exists():
+    env_file = project_root / ".env"
 if env_file.exists():
     load_dotenv(env_file)
 

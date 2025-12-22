@@ -18,7 +18,9 @@ from database.supabase_client import get_supabase_client
 # Valid categories (matching frontend)
 VALID_CATEGORIES = [
     "floor_plans",
-    "amenities",
+    "apartment_interior",
+    "building_amenities",
+    "apartment_amenities",
     "common_areas",
     "lifestyle",
     "exterior",

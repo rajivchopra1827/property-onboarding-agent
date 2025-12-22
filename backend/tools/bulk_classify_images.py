@@ -39,6 +39,7 @@ classify_images = classify_images_module.classify_images
 
 def bulk_classify_images(
     property_id: Optional[str] = None,
+    url: Optional[str] = None,
     force_reclassify: bool = False,
     batch_size: int = 5,
     max_images: Optional[int] = None
@@ -47,7 +48,8 @@ def bulk_classify_images(
     Classify all unclassified images (or re-classify if force_reclassify is True).
     
     Args:
-        property_id: Optional property ID to limit classification to one property
+        property_id: Optional property ID (UUID) to limit classification to one property
+        url: Optional website URL to find property by URL instead of ID
         force_reclassify: If True, re-classify images that already have classifications
         batch_size: Number of images to process per batch
         max_images: Maximum number of images to process (None for all)
@@ -57,9 +59,26 @@ def bulk_classify_images(
     """
     repo = PropertyRepository()
     
+    # Resolve property_id from URL if needed
+    resolved_property_id = property_id
+    if url and not property_id:
+        # Look up property by website URL
+        property_obj = repo.get_property_by_website_url(url)
+        if property_obj and property_obj.id:
+            resolved_property_id = property_obj.id
+            print(f"Found property: {property_obj.property_name} (ID: {resolved_property_id})")
+        else:
+            return {
+                "total_images": 0,
+                "images_to_classify": 0,
+                "classified": 0,
+                "failed": 0,
+                "error": f"Property not found for URL: {url}"
+            }
+    
     # Get images to classify
-    if property_id:
-        images = repo.get_property_images(property_id)
+    if resolved_property_id:
+        images = repo.get_property_images(resolved_property_id)
     else:
         # Get all images from all properties
         # We'll need to query all properties first
@@ -170,13 +189,17 @@ def get_tool_definition():
         "type": "function",
         "function": {
             "name": "bulk_classify_images",
-            "description": "Bulk classify all unclassified images for a property (or all properties). Processes images in batches to respect rate limits. Can re-classify existing images if force_reclassify is True. Use this when user asks to 'bulk classify images' or 'classify all images' for a property.",
+            "description": "Bulk classify all unclassified images for a property (or all properties). Processes images in batches to respect rate limits. Can re-classify existing images if force_reclassify is True. Use this when user asks to 'bulk classify images' or 'classify all images' for a property. Accepts either property_id (UUID) or url (website URL) to identify the property.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "property_id": {
                         "type": "string",
-                        "description": "Property ID to classify images for. If not provided, will classify images for all properties."
+                        "description": "Property ID (UUID) to classify images for. If not provided, will classify images for all properties."
+                    },
+                    "url": {
+                        "type": "string",
+                        "description": "Property website URL to find property and classify its images. Alternative to property_id. If both are provided, property_id takes precedence."
                     },
                     "force_reclassify": {
                         "type": "boolean",
@@ -205,7 +228,8 @@ def execute(arguments: Dict[str, Any]) -> Dict[str, Any]:
     
     Args:
         arguments: Dictionary containing tool arguments
-            - property_id (str, optional): Property ID to classify images for
+            - property_id (str, optional): Property ID (UUID) to classify images for
+            - url (str, optional): Property website URL to find property and classify its images
             - force_reclassify (bool, optional): Re-classify existing images
             - batch_size (int, optional): Batch size for processing
             - max_images (int, optional): Maximum number of images to process
@@ -214,6 +238,7 @@ def execute(arguments: Dict[str, Any]) -> Dict[str, Any]:
         Dictionary with classification statistics
     """
     property_id = arguments.get("property_id")
+    url = arguments.get("url")
     force_reclassify = arguments.get("force_reclassify", False)
     batch_size = arguments.get("batch_size", 5)
     max_images = arguments.get("max_images")
@@ -221,10 +246,21 @@ def execute(arguments: Dict[str, Any]) -> Dict[str, Any]:
     try:
         stats = bulk_classify_images(
             property_id=property_id,
+            url=url,
             force_reclassify=force_reclassify,
             batch_size=batch_size,
             max_images=max_images
         )
+        
+        # Check if there was an error (e.g., property not found)
+        if stats.get("error"):
+            return {
+                "success": False,
+                "error": stats.get("error"),
+                "statistics": stats,
+                "message": stats.get("error")
+            }
+        
         return {
             "success": True,
             "statistics": stats,

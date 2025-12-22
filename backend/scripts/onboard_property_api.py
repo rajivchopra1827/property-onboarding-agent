@@ -23,14 +23,11 @@ from dotenv import load_dotenv
 # Suppress warnings to ensure clean JSON output
 warnings.filterwarnings('ignore')
 
-# Load environment variables
-env_file = Path(".env.local")
+# Load environment variables from project root .env.local or .env file
+project_root = Path(__file__).parent.parent.parent
+env_file = project_root / ".env.local"
 if not env_file.exists():
-    env_file = Path(".env")
-if not env_file.exists():
-    env_file = Path("../.env.local")
-if not env_file.exists():
-    env_file = Path("../.env")
+    env_file = project_root / ".env"
 
 if env_file.exists():
     load_dotenv(env_file)

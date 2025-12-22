@@ -1,6 +1,6 @@
 -- Onboarding sessions table for tracking property onboarding progress
 CREATE TABLE onboarding_sessions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
   url TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'started',

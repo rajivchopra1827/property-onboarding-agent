@@ -1,6 +1,6 @@
 -- Competitor watchlist table
 CREATE TABLE competitor_watchlist (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   property_id UUID NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
   competitor_id UUID NOT NULL REFERENCES property_competitors(id) ON DELETE CASCADE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

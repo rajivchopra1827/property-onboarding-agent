@@ -1,6 +1,6 @@
 -- Property competitors table
 CREATE TABLE property_competitors (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   property_id UUID NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
   competitor_name TEXT NOT NULL,
   address TEXT,

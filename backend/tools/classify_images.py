@@ -19,7 +19,9 @@ from datetime import datetime
 # Predefined image categories
 IMAGE_CATEGORIES = [
     "floor_plans",
-    "amenities",
+    "apartment_interior",
+    "building_amenities",
+    "apartment_amenities",
     "common_areas",
     "lifestyle",
     "exterior",
@@ -65,13 +67,18 @@ def download_image_as_base64(image_url: str) -> Optional[str]:
         return None
 
 
-def classify_image_with_openai(image_url: str, client: OpenAI) -> Dict[str, Any]:
+def classify_image_with_openai(
+    image_url: str, 
+    client: OpenAI, 
+    amenities_data: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     """
     Classify a single image using OpenAI Vision API.
     
     Args:
         image_url: URL of the image to classify
         client: OpenAI client instance
+        amenities_data: Optional dictionary with building_amenities and apartment_amenities lists
         
     Returns:
         Dictionary with tags, confidence scores, and quality score
@@ -86,13 +93,64 @@ def classify_image_with_openai(image_url: str, client: OpenAI) -> Dict[str, Any]
             "error": "Failed to download image"
         }
     
+    # Build amenities context if provided
+    amenities_context = ""
+    if amenities_data:
+        building_amenities_list = amenities_data.get("building_amenities", [])
+        apartment_amenities_list = amenities_data.get("apartment_amenities", [])
+        
+        if building_amenities_list or apartment_amenities_list:
+            amenities_context = "\n\nCONTEXT - Known amenities for this property:\n"
+            
+            if building_amenities_list:
+                building_names = []
+                for amenity in building_amenities_list[:10]:  # Limit to first 10
+                    if isinstance(amenity, dict):
+                        building_names.append(amenity.get("name", ""))
+                    else:
+                        building_names.append(str(amenity))
+                if building_names:
+                    amenities_context += f"- Building amenities: {', '.join(building_names)}\n"
+            
+            if apartment_amenities_list:
+                apartment_names = []
+                for amenity in apartment_amenities_list[:10]:  # Limit to first 10
+                    if isinstance(amenity, dict):
+                        apartment_names.append(amenity.get("name", ""))
+                    else:
+                        apartment_names.append(str(amenity))
+                if apartment_names:
+                    amenities_context += f"- Apartment amenities: {', '.join(apartment_names)}\n"
+            
+            amenities_context += "\nUse this context to help match images to the correct amenity category.\n"
+    
     # Create the classification prompt
     prompt = f"""Analyze this property image and classify it according to the following categories:
-{', '.join(IMAGE_CATEGORIES)}
+
+- floor_plans: Architectural drawings, blueprints, layout diagrams, 2D visualizations showing room layouts and spatial relationships. These are technical drawings or digital renderings, not photographs.
+
+- apartment_interior: Actual photographs of furnished or unfurnished apartment rooms including living rooms, bedrooms, kitchens, bathrooms, dining areas, and other interior spaces. These are real photos showing actual room interiors.
+
+- building_amenities: Images of shared/public facilities available to all residents such as pools, gyms, fitness centers, clubhouses, business centers, parking garages, rooftop decks, dog parks, and other building-level amenities. These are spaces shared by the community, not inside individual apartments.
+
+- apartment_amenities: Images of in-unit features and appliances within individual apartments such as stainless steel appliances, granite countertops, dishwashers, air conditioning units, in-unit washers/dryers, walk-in closets, hardwood floors, and other apartment-specific features. These are features inside the actual living units.
+
+- common_areas: Images of shared spaces like lobbies, hallways, mailrooms, elevators, and other common building areas.
+
+- lifestyle: Images showing people, activities, community events, or lifestyle scenes that convey the living experience at the property.
+
+- exterior: Images of the building facade, street view, aerial shots, or any external views of the property.
+
+- outdoor_spaces: Images of patios, balconies, courtyards, rooftop decks, gardens, and other outdoor areas.
 
 For each applicable category, provide:
 1. The category name
 2. A confidence score from 0.0 to 1.0 (how certain you are this image belongs to this category)
+
+IMPORTANT: 
+- Distinguish carefully between "floor_plans" (drawings/diagrams) and "apartment_interior" (actual photographs of rooms). Floor plans are technical drawings or visualizations, while apartment interiors are real photos of rooms.
+- Distinguish carefully between "building_amenities" (shared/public facilities like pools, gyms) and "apartment_amenities" (in-unit features like appliances, countertops). Building amenities are shared spaces, while apartment amenities are inside individual units.
+{amenities_context}
 
 Also assess the image quality based on:
 - Composition (framing, balance)
@@ -104,7 +162,7 @@ Return your analysis as a JSON object with this structure:
 {{
     "tags": [
         {{"category": "exterior", "confidence": 0.95}},
-        {{"category": "amenities", "confidence": 0.30}}
+        {{"category": "building_amenities", "confidence": 0.30}}
     ],
     "quality_score": 0.85,
     "quality_assessment": "Brief description of quality factors"
@@ -189,13 +247,18 @@ Only include tags with confidence >= 0.3. Return only valid JSON, no additional 
         }
 
 
-def classify_images(image_urls: List[str], batch_size: int = 5) -> List[Dict[str, Any]]:
+def classify_images(
+    image_urls: List[str], 
+    batch_size: int = 5,
+    amenities_data: Optional[Dict[str, Any]] = None
+) -> List[Dict[str, Any]]:
     """
     Classify multiple images, processing in batches to respect rate limits.
     
     Args:
         image_urls: List of image URLs to classify
         batch_size: Number of images to process in each batch
+        amenities_data: Optional dictionary with building_amenities and apartment_amenities lists
         
     Returns:
         List of classification results, one per image URL
@@ -209,7 +272,7 @@ def classify_images(image_urls: List[str], batch_size: int = 5) -> List[Dict[str
         
         for image_url in batch:
             print(f"  Classifying: {image_url[:80]}...")
-            result = classify_image_with_openai(image_url, client)
+            result = classify_image_with_openai(image_url, client, amenities_data=amenities_data)
             result["image_url"] = image_url
             results.append(result)
             
@@ -231,7 +294,7 @@ def get_tool_definition():
         "type": "function",
         "function": {
             "name": "classify_images",
-            "description": "Classify property images using AI vision to assign tags, confidence scores, and quality scores. Analyzes image content to categorize into: floor_plans, amenities, common_areas, lifestyle, exterior, outdoor_spaces.",
+            "description": "Classify property images using AI vision to assign tags, confidence scores, and quality scores. Analyzes image content to categorize into: floor_plans, apartment_interior, building_amenities, apartment_amenities, common_areas, lifestyle, exterior, outdoor_spaces.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -282,13 +345,26 @@ def execute(arguments: Dict[str, Any]) -> Dict[str, Any]:
     print(f"Classifying {len(image_urls)} images...")
     
     try:
-        # Classify images
-        results = classify_images(image_urls, batch_size=batch_size)
-        
-        # Update database if property_id is provided
+        # Fetch amenities data if property_id is provided
+        amenities_data = None
         if property_id:
             from database import PropertyRepository
             repo = PropertyRepository()
+            
+            # Fetch amenities data for context
+            amenities_obj = repo.get_amenities_by_property_id(property_id)
+            if amenities_obj and amenities_obj.amenities_data:
+                amenities_data = amenities_obj.amenities_data
+                print(f"✓ Loaded amenities data for context: {len(amenities_data.get('building_amenities', []))} building, {len(amenities_data.get('apartment_amenities', []))} apartment")
+        
+        # Classify images
+        results = classify_images(image_urls, batch_size=batch_size, amenities_data=amenities_data)
+        
+        # Update database if property_id is provided
+        if property_id:
+            if not 'repo' in locals():
+                from database import PropertyRepository
+                repo = PropertyRepository()
             
             updated_count = 0
             for result in results:

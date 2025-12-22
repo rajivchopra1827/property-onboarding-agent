@@ -10,63 +10,83 @@ from dotenv import load_dotenv
 from supabase import create_client, Client
 
 
+def _load_env_from_project_root():
+    """Load environment variables from project root .env.local or .env file."""
+    project_root = Path(__file__).parent.parent.parent
+    env_file = project_root / ".env.local"
+    if not env_file.exists():
+        env_file = project_root / ".env"
+    if env_file.exists():
+        load_dotenv(env_file)
+
+
 def get_supabase_url() -> str:
     """
     Get Supabase URL from environment variables.
     
-    For local development, this is typically: http://127.0.0.1:54321
-    For production, this would be your Supabase project URL.
+    Reads from SUPABASE_URL in .env.local file in project root.
+    For local development, set SUPABASE_URL=http://127.0.0.1:54321
+    For production, set SUPABASE_URL to your Supabase project URL.
     
     Returns:
         Supabase URL string
+        
+    Raises:
+        ValueError: If SUPABASE_URL is not set in .env.local
     """
-    # Try to load from .env.local first, then .env
-    env_file = Path(".env.local")
-    if not env_file.exists():
-        env_file = Path(".env")
+    # Load from project root .env.local or .env file
+    _load_env_from_project_root()
     
-    if env_file.exists():
-        load_dotenv(env_file)
-    
-    # Check for SUPABASE_URL first (for local or production)
+    # Check for SUPABASE_URL (required)
     supabase_url = os.getenv("SUPABASE_URL")
     if supabase_url:
         return supabase_url
     
-    # Default to local Supabase instance
-    # This will be set when you run `supabase start`
-    return os.getenv("SUPABASE_LOCAL_URL", "http://127.0.0.1:54321")
+    # Fallback to SUPABASE_LOCAL_URL for backward compatibility
+    supabase_url = os.getenv("SUPABASE_LOCAL_URL")
+    if supabase_url:
+        return supabase_url
+    
+    # No URL found - raise error
+    raise ValueError(
+        "SUPABASE_URL not found in .env.local file. "
+        "Please set SUPABASE_URL in your .env.local file in the project root. "
+        "For local development: SUPABASE_URL=http://127.0.0.1:54321"
+    )
 
 
 def get_supabase_key() -> str:
     """
     Get Supabase anon/service key from environment variables.
     
-    For local development, this is typically the anon key from `supabase start` output.
-    For production, this would be your Supabase project anon key.
+    Reads from SUPABASE_KEY in .env.local file in project root.
+    For local development, set SUPABASE_KEY to the anon key from `supabase start` output.
+    For production, set SUPABASE_KEY to your Supabase project anon key.
     
     Returns:
         Supabase key string
+        
+    Raises:
+        ValueError: If SUPABASE_KEY is not set in .env.local
     """
-    # Try to load from .env.local first, then .env
-    env_file = Path(".env.local")
-    if not env_file.exists():
-        env_file = Path(".env")
+    # Load from project root .env.local or .env file
+    _load_env_from_project_root()
     
-    if env_file.exists():
-        load_dotenv(env_file)
-    
-    # Check for SUPABASE_KEY first (for local or production)
+    # Check for SUPABASE_KEY (required)
     supabase_key = os.getenv("SUPABASE_KEY")
     if supabase_key:
         return supabase_key
     
-    # Default to local Supabase anon key
-    # This will be set when you run `supabase start`
-    # Default local anon key (can be overridden via env var)
-    return os.getenv(
-        "SUPABASE_LOCAL_KEY",
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
+    # Fallback to SUPABASE_LOCAL_KEY for backward compatibility
+    supabase_key = os.getenv("SUPABASE_LOCAL_KEY")
+    if supabase_key:
+        return supabase_key
+    
+    # No key found - raise error
+    raise ValueError(
+        "SUPABASE_KEY not found in .env.local file. "
+        "Please set SUPABASE_KEY in your .env.local file in the project root. "
+        "For local development, get the key from 'supabase start' output."
     )
 
 
@@ -74,30 +94,19 @@ def get_supabase_client() -> Client:
     """
     Initialize and return Supabase client.
     
-    Reads configuration from environment variables:
-    - SUPABASE_URL or SUPABASE_LOCAL_URL (defaults to http://127.0.0.1:54321)
-    - SUPABASE_KEY or SUPABASE_LOCAL_KEY (defaults to local demo key)
+    Reads configuration from .env.local file in project root:
+    - SUPABASE_URL (required) - Supabase project URL
+    - SUPABASE_KEY (required) - Supabase anon or service role key
     
     Returns:
         Supabase client instance
         
     Raises:
-        ValueError: If required configuration is missing
+        ValueError: If required configuration is missing from .env.local
     """
     url = get_supabase_url()
     key = get_supabase_key()
     
-    if not url:
-        raise ValueError(
-            "SUPABASE_URL or SUPABASE_LOCAL_URL not found. "
-            "Please set it in your environment variables or run 'supabase start' to get local values."
-        )
-    
-    if not key:
-        raise ValueError(
-            "SUPABASE_KEY or SUPABASE_LOCAL_KEY not found. "
-            "Please set it in your environment variables or run 'supabase start' to get local values."
-        )
-    
     return create_client(url, key)
+
 

@@ -1,6 +1,6 @@
 -- Property social media posts table
 CREATE TABLE property_social_posts (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   property_id UUID NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
   platform TEXT NOT NULL DEFAULT 'instagram',
   post_type TEXT NOT NULL DEFAULT 'single_image',

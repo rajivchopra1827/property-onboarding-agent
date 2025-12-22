@@ -1,6 +1,6 @@
 -- Property floor plans table
 CREATE TABLE property_floor_plans (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   size_sqft INTEGER,

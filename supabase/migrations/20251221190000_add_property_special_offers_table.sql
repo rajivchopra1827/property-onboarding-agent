@@ -1,6 +1,6 @@
 -- Property special offers table
 CREATE TABLE property_special_offers (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
   floor_plan_id UUID REFERENCES property_floor_plans(id) ON DELETE CASCADE, -- Optional: for floor plan-specific offers
   offer_description TEXT NOT NULL, -- What the offer is (e.g., "First month free", "$500 off moving costs")

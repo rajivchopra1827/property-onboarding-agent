@@ -118,8 +118,8 @@ def check_image_classification_status(property_id: str = None):
     # Check for images with invalid tags (not in valid categories)
     # Valid categories from the system (uncategorized is not a selectable tag)
     valid_categories = [
-        "floor_plans", "amenities", "common_areas", "lifestyle",
-        "exterior", "outdoor_spaces"
+        "floor_plans", "apartment_interior", "building_amenities", "apartment_amenities", 
+        "common_areas", "lifestyle", "exterior", "outdoor_spaces"
     ]
     
     if has_tags:

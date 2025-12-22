@@ -1,6 +1,6 @@
 -- Property reviews summary table
 CREATE TABLE property_reviews_summary (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
   overall_rating NUMERIC(3,2), -- Rating out of 5 (e.g., 4.8)
   review_count INTEGER, -- Total number of reviews
@@ -13,7 +13,7 @@ CREATE TABLE property_reviews_summary (
 
 -- Property reviews table
 CREATE TABLE property_reviews (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
   review_id TEXT NOT NULL, -- Unique Google review ID for deduplication
   reviewer_name TEXT,

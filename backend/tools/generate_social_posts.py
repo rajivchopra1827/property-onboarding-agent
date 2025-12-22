@@ -59,7 +59,7 @@ def get_theme_tag_mapping(theme: str) -> Optional[List[str]]:
         List of preferred tag names in priority order, or None if no specific preference
     """
     theme_tag_map = {
-        "amenities": ["amenities"],
+        "amenities": ["building_amenities", "apartment_amenities"],
         "floor_plans": ["floor_plans"],
         "lifestyle": ["lifestyle"],
         "location": ["exterior", "outdoor_spaces"],

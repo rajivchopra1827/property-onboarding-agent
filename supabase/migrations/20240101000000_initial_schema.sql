@@ -1,9 +1,9 @@
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Enable UUID extension (Supabase uses pgcrypto for UUID generation)
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Properties table
 CREATE TABLE properties (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   property_name TEXT,
   street_address TEXT,
   city TEXT,
@@ -19,7 +19,7 @@ CREATE TABLE properties (
 
 -- Property images table
 CREATE TABLE property_images (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
   image_url TEXT NOT NULL,
   image_type TEXT, -- 'exterior', 'interior', 'amenity', etc.
@@ -32,7 +32,7 @@ CREATE TABLE property_images (
 
 -- Cache entries table (replaces file-based cache)
 CREATE TABLE cache_entries (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   domain TEXT NOT NULL,
   content_type TEXT NOT NULL, -- 'markdown', 'images', etc.
   cached_data JSONB NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE cache_entries (
 
 -- Extraction sessions table (track extraction runs)
 CREATE TABLE extraction_sessions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   property_id UUID REFERENCES properties(id) ON DELETE SET NULL,
   website_url TEXT NOT NULL,
   status TEXT DEFAULT 'completed', -- 'completed', 'failed', 'in_progress'

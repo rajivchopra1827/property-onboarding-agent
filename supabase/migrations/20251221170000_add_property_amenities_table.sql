@@ -1,6 +1,6 @@
 -- Property amenities table
 CREATE TABLE property_amenities (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
   amenities_data JSONB NOT NULL,
   website_url TEXT,
