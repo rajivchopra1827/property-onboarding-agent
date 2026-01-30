@@ -28,7 +28,8 @@ Before testing, make sure you have:
 
 1. Start FionaFast:
    ```bash
-   python3 fiona_fast.py
+   # Start FastAPI server: python -m api.server
+   # Then use API endpoints for testing
    ```
 
 2. Test extracting floor plans:
@@ -84,18 +85,23 @@ Before testing, make sure you have:
 **Goal:** Confirm the tool uses cached markdown when available.
 
 1. First extraction (fresh crawl):
-   ```
-   You: extract floor plans from https://www.villasattowngate.com
+   ```bash
+   curl -X POST http://localhost:8000/api/onboard \
+     -H "Content-Type: application/json" \
+     -d '{"url": "https://www.villasattowngate.com"}'
    ```
    - Should crawl the website first
    - Should cache the markdown
+   - Floor plans extraction runs in parallel group (step 2)
 
 2. Second extraction (should use cache):
+   ```bash
+   curl -X POST http://localhost:8000/api/onboard \
+     -H "Content-Type: application/json" \
+     -d '{"url": "https://www.villasattowngate.com"}'
    ```
-   You: extract floor plans from https://www.villasattowngate.com
-   ```
-   - Should prompt about cache or use cached markdown
-   - Should be faster (no crawling needed)
+   - Should use cached markdown (faster)
+   - Workflow makes cache decision upfront
 
 3. **What to check:**
    - ✅ First run should crawl and cache

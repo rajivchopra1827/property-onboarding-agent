@@ -29,3 +29,13 @@ ON properties
 FOR INSERT
 WITH CHECK (true);
 
+
+
+
+
+
+
+
+
+
+

@@ -42,10 +42,11 @@ from .generate_reviews_sentiment import (
     get_tool_definition as get_generate_reviews_sentiment_definition,
     execute as execute_generate_reviews_sentiment
 )
-from .onboard_property import (
-    get_tool_definition as get_onboard_property_definition,
-    execute as execute_onboard_property
-)
+# DEPRECATED: onboard_property tool removed - use workflows instead
+# from .onboard_property import (
+#     get_tool_definition as get_onboard_property_definition,
+#     execute as execute_onboard_property
+# )
 from .find_competitors import (
     get_tool_definition as get_find_competitors_definition,
     execute as execute_find_competitors
@@ -101,10 +102,11 @@ _TOOLS_REGISTRY = {
         "definition": get_generate_reviews_sentiment_definition,
         "execute": execute_generate_reviews_sentiment
     },
-    "onboard_property": {
-        "definition": get_onboard_property_definition,
-        "execute": execute_onboard_property
-    },
+    # DEPRECATED: onboard_property tool removed - use workflows instead
+    # "onboard_property": {
+    #     "definition": get_onboard_property_definition,
+    #     "execute": execute_onboard_property
+    # },
     "find_competitors": {
         "definition": get_find_competitors_definition,
         "execute": execute_find_competitors

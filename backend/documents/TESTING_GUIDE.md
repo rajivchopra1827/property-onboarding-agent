@@ -23,19 +23,21 @@ Before testing, make sure you have:
    APIFY_API_TOKEN=your-apify-api-token
    ```
 
-## Test 1: Verify crawl_property_website returns markdown only (no images)
+## Test 1: Start FastAPI Server and Verify Health
 
-**Goal:** Confirm that the crawl tool no longer returns images.
+**Goal:** Verify the API server is running correctly.
 
-1. Start FionaFast:
+1. Start the FastAPI server:
    ```bash
-   python3 fiona_fast.py
+   cd backend
+   python -m api.server
    ```
 
-2. Test crawling a website:
+2. Test health endpoint:
+   ```bash
+   curl http://localhost:8000/health
    ```
-   You: crawl https://www.villasattowngate.com
-   ```
+   Should return: `{"status": "healthy"}`
 
 3. **What to check:**
    - ✅ Tool should crawl and return markdown content
@@ -56,10 +58,13 @@ Before testing, make sure you have:
 
 **Goal:** Confirm the new image extraction tool works correctly.
 
-1. In the same FionaFast session (or start a new one), test image extraction:
+1. Test image extraction via onboarding workflow:
+   ```bash
+   curl -X POST http://localhost:8000/api/onboard \
+     -H "Content-Type: application/json" \
+     -d '{"url": "https://www.villasattowngate.com"}'
    ```
-   You: extract images from https://www.villasattowngate.com
-   ```
+   Images extraction runs automatically as part of the workflow (parallel step 2).
 
 2. **What to check:**
    - ✅ Tool should run Apify Actor successfully
@@ -90,33 +95,32 @@ Before testing, make sure you have:
 
 ### Test 3a: Markdown caching
 
-1. First crawl (fresh):
-   ```
-   You: crawl https://www.villasattowngate.com
+1. First onboarding (fresh):
+   ```bash
+   curl -X POST http://localhost:8000/api/onboard \
+     -H "Content-Type: application/json" \
+     -d '{"url": "https://www.villasattowngate.com"}'
    ```
    - Should crawl fresh and cache markdown
 
-2. Second crawl (should use cache):
+2. Second onboarding (should use cache if < 12 hours old):
+   ```bash
+   curl -X POST http://localhost:8000/api/onboard \
+     -H "Content-Type: application/json" \
+     -d '{"url": "https://www.villasattowngate.com"}'
    ```
-   You: crawl https://www.villasattowngate.com
-   ```
-   - Should prompt about cache or use cache if `use_cache=True`
-   - Should say "Using cached data" or "USING CACHE"
+   - Should use cached markdown (faster)
+   - Workflow makes cache decision upfront
 
-### Test 3b: Images caching
+### Test 3b: Force refresh
 
-1. First image extraction (fresh):
+1. Force refresh (ignore cache):
+   ```bash
+   curl -X POST http://localhost:8000/api/onboard \
+     -H "Content-Type: application/json" \
+     -d '{"url": "https://www.villasattowngate.com", "force_reonboard": true}'
    ```
-   You: extract images from https://www.villasattowngate.com
-   ```
-   - Should extract fresh and cache images
-
-2. Second image extraction (should use cache):
-   ```
-   You: extract images from https://www.villasattowngate.com
-   ```
-   - Should prompt about cache or use cache if `use_cache=True`
-   - Should say "Using cached images" or "USING CACHE"
+   - Should ignore cache and crawl fresh
 
 ### Test 3c: Independent caches
 
@@ -126,29 +130,29 @@ Before testing, make sure you have:
    - If images cache exists, `extract_website_images` can still use it
    - Caches don't affect each other
 
-## Test 4: Verify tools work together
+## Test 4: Verify workflow execution
 
-**Goal:** Confirm both tools can be used in sequence.
+**Goal:** Confirm the full onboarding workflow executes all steps correctly.
 
-1. Extract markdown:
-   ```
-   You: crawl https://www.villasattowngate.com
-   ```
-
-2. Extract images:
-   ```
-   You: extract images from https://www.villasattowngate.com
+1. Start onboarding:
+   ```bash
+   curl -X POST http://localhost:8000/api/onboard \
+     -H "Content-Type: application/json" \
+     -d '{"url": "https://www.villasattowngate.com"}'
    ```
 
-3. Extract property information (should use cached markdown):
-   ```
-   You: extract property information from https://www.villasattowngate.com
+2. Monitor progress:
+   ```bash
+   # Get session_id from response, then check status
+   curl http://localhost:8000/api/onboard/{session_id}/status
    ```
 
-4. **What to check:**
-   - ✅ All three tools should work independently
-   - ✅ Property extraction should use cached markdown (faster)
-   - ✅ No errors or conflicts between tools
+3. **What to check:**
+   - ✅ All 8 extraction steps should complete
+   - ✅ Parallel steps (images, amenities, etc.) should complete around the same time
+   - ✅ Sequential steps (reviews, competitors) should run after parallel group
+   - ✅ Final status should be "completed"
+   - ✅ Property ID should be populated
 
 ## Test 5: Verify error handling
 
@@ -209,20 +213,29 @@ Before testing, make sure you have:
    - ✅ Images cache should have `images` array
    - ✅ Structure should match expected format
 
-## Test 7: Verify tool definitions are correct
+## Test 7: Verify API endpoints
 
-**Goal:** Confirm the AI agent knows about both tools.
+**Goal:** Confirm all API endpoints work correctly.
 
-1. Ask about capabilities:
+1. **Health check:**
+   ```bash
+   curl http://localhost:8000/health
    ```
-   You: What tools do you have available?
+
+2. **Missing extractions:**
+   ```bash
+   curl http://localhost:8000/api/properties/{property_id}/missing-extractions
    ```
 
-2. **What to check:**
-   - ✅ Should mention `crawl_property_website` (for markdown)
-   - ✅ Should mention `extract_website_images` (for images)
-   - ✅ Should mention `extract_property_information`
-   - ✅ Should explain when to use each tool
+3. **Force re-onboarding:**
+   ```bash
+   curl -X POST http://localhost:8000/api/properties/{property_id}/force-reonboard
+   ```
+
+4. **What to check:**
+   - ✅ All endpoints should return valid JSON
+   - ✅ Missing extractions should return correct list
+   - ✅ Force re-onboarding should create new session
 
 ## Quick Test Checklist
 

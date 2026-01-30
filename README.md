@@ -6,14 +6,17 @@ FionaFast is a specialized AI agent designed to extract comprehensive informatio
 
 This project is organized as a monorepo with:
 
-- **Backend** (`backend/`): Python-based agent
-  - `fiona_fast.py` - Main agent script
-  - `tools/` - Tool modules for crawling and extraction
-  - `cache/` - Cached website data
+- **Backend** (`backend/`): Python-based property onboarding system
+  - `workflows/` - Agno workflows for orchestrating extractions
+  - `agno_tools/` - Agno-native tool wrappers
+  - `api/` - FastAPI server for workflow execution
+  - `tools/` - Individual extraction tool modules
+  - `database/` - Database repositories and models
   - `requirements.txt` - Python dependencies
   
 - **Frontend** (`frontend/`): Next.js application
-  - React-based web interface (currently boilerplate)
+  - React-based web interface for property management
+  - API routes that call FastAPI backend
 
 ## Setup
 
@@ -81,53 +84,99 @@ This project is organized as a monorepo with:
    **Getting your API keys:**
    - **Apify**: Sign up at [apify.com](https://apify.com), get your API token from Settings → Integrations → API tokens. The same token is used for both website crawling and image extraction.
 
-## Running FionaFast
+## Running the System
 
-Navigate to the backend directory and run:
+### Start the FastAPI Server
+
+The backend uses a FastAPI server to run Agno workflows:
+
 ```bash
 cd backend
-python3 fiona_fast.py
+python -m api.server
 ```
 
-Or run from the project root:
-```bash
-python3 backend/fiona_fast.py
-```
+Or using uvicorn directly:
 
-You can also make it executable and run directly:
 ```bash
 cd backend
-chmod +x fiona_fast.py
-./fiona_fast.py
+uvicorn api.server:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-**Note:** This is a Python script, not a Node.js project. Use `python3` (not `npm`) to run it.
+The API will be available at `http://localhost:8000`
+
+### Start the Frontend
+
+In a separate terminal:
+
+```bash
+cd frontend
+npm run dev
+```
+
+The frontend will be available at `http://localhost:3000`
 
 ## Usage
 
-Once running, you can:
-- Ask FionaFast about its capabilities
-- Discuss how it would approach extracting information from property websites
-- Have conversations about property data extraction
+### Onboarding a Property
 
-Type `quit`, `exit`, or `q` to end the conversation.
+**Via Frontend:**
+1. Navigate to the properties page
+2. Click "Add Property"
+3. Enter the property website URL
+4. The system will automatically start onboarding via the workflow
 
-## Current Status
+**Via API:**
+```bash
+curl -X POST http://localhost:8000/api/onboard \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com", "force_reonboard": false}'
+```
 
-FionaFast now has active tool calling capabilities with three main tools:
+**Check Status:**
+```bash
+curl http://localhost:8000/api/onboard/{session_id}/status
+```
 
-1. **crawl_property_website**: Crawls/scrapes property websites using Apify's Website Content Crawler Actor to extract markdown content from multiple pages. Returns raw markdown content that can be used for information extraction.
+### Check Missing Extractions
 
-2. **extract_website_images**: Extracts images from property websites using Apify's website-image-scraper Actor. Returns a list of image URLs found across the website, including images from CSS backgrounds.
+```bash
+curl http://localhost:8000/api/properties/{property_id}/missing-extractions
+```
 
-3. **extract_property_information**: Extracts structured property information including:
-   - Property name
-   - Address (street, city, state, ZIP code)
-   - Phone number
-   - Email address
-   - Office hours
+### Force Re-onboarding
 
-Both crawling and image extraction tools use caching systems for faster subsequent requests. The tools can be used independently or together as needed.
+```bash
+curl -X POST http://localhost:8000/api/properties/{property_id}/force-reonboard
+```
+
+## Architecture
+
+The system uses **Agno workflows** to orchestrate property onboarding with parallel execution:
+
+1. **Workflow-based:** All onboarding goes through Agno workflows for better performance and maintainability
+2. **Parallel execution:** Independent extractions run simultaneously (images, amenities, floor plans, etc.)
+3. **FastAPI server:** Provides REST API for triggering and monitoring workflows
+4. **Individual tools:** Each extraction type is a separate tool that can be used independently
+
+### Extraction Types
+
+The system extracts the following information from property websites:
+
+1. **Property Information** - Name, address, phone, email, office hours
+2. **Images** - All images from the website
+3. **Brand Identity** - Colors, fonts, typography, design system
+4. **Amenities** - Building and apartment amenities
+5. **Floor Plans** - Unit types, sizes, prices, availability
+6. **Special Offers** - Promotions and concessions
+7. **Reviews** - Google Maps reviews and ratings
+8. **Competitors** - Nearby competing properties
+
+### Workflow Execution
+
+The onboarding workflow runs in three phases:
+1. **Step 1:** Extract property info (creates database record)
+2. **Step 2:** Parallel extractions (5 steps run simultaneously)
+3. **Step 3:** Sequential extractions (reviews and competitors, need property address)
 
 ## Database
 

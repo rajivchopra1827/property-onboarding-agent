@@ -7,16 +7,19 @@ Provides database access through Supabase for storing properties, images, and ca
 from .supabase_client import get_supabase_client
 from .property_repository import PropertyRepository
 from .cache_repository import CacheRepository
-from .models import Property, PropertyImage, PropertyBranding, Competitor, PropertySocialPost
+from .onboarding_repository import OnboardingRepository
+from .models import Property, PropertyImage, PropertyBranding, Competitor, PropertySocialPost, OnboardingSession
 
 __all__ = [
     "get_supabase_client",
     "PropertyRepository",
     "CacheRepository",
+    "OnboardingRepository",
     "Property",
     "PropertyImage",
     "PropertyBranding",
     "Competitor",
     "PropertySocialPost",
+    "OnboardingSession",
 ]
 

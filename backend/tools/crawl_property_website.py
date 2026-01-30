@@ -107,8 +107,8 @@ def get_tool_definition():
                     "scraping_method": {
                         "type": "string",
                         "enum": ["firecrawl", "apify"],
-                        "description": "Scraping method to use. Defaults to 'firecrawl'. Use 'apify' for Apify Website Content Crawler.",
-                        "default": "firecrawl"
+                        "description": "Scraping method to use. Defaults to 'apify'. Use 'firecrawl' if FIRECRAWL_API_KEY is set.",
+                        "default": "apify"
                     }
                 },
                 "required": ["url"]
@@ -142,7 +142,7 @@ def execute(arguments):
     url = arguments.get("url", "")
     use_cache = arguments.get("use_cache")  # None, True, or False
     force_refresh = arguments.get("force_refresh", False)
-    scraping_method = arguments.get("scraping_method", "firecrawl")  # Default to firecrawl
+    scraping_method = arguments.get("scraping_method", "apify")  # Default to apify
     
     if not url:
         return {

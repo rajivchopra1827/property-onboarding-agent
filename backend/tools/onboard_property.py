@@ -1,4 +1,14 @@
 """
+DEPRECATED: This tool has been replaced by Agno workflows.
+
+This module is deprecated and will be removed in a future version.
+Please use the new workflow system instead:
+- Use FastAPI endpoint: POST /api/onboard
+- Or use workflows.onboard_property_workflow.create_onboard_property_workflow()
+
+The old sequential orchestration has been replaced with parallel execution
+via Agno workflows for better performance and maintainability.
+
 Tool for fully onboarding a property by orchestrating all extraction tools.
 
 This tool runs all property extraction tools in sequence to fully onboard

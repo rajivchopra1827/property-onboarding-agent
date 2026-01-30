@@ -62,20 +62,18 @@ Before testing, make sure you have:
 
 1. **First, ensure you have a property in the database:**
    ```bash
-   python3 fiona_fast.py
-   ```
-   ```
-   You: extract property information from https://www.villasattowngate.com
+   # Start onboarding workflow via API
+   curl -X POST http://localhost:8000/api/onboard \
+     -H "Content-Type: application/json" \
+     -d '{"url": "https://www.villasattowngate.com"}'
    ```
    - This creates the property record needed for reviews
+   - Wait for onboarding to complete, or use individual extraction endpoint
 
-2. **Extract reviews:**
-   ```
-   You: extract reviews from https://www.villasattowngate.com
-   ```
-   or
-   ```
-   You: extract Google Maps reviews for the property
+2. **Extract reviews via API:**
+   ```bash
+   # Use the individual extraction endpoint (if available)
+   # Or wait for full onboarding workflow to complete reviews step
    ```
 
 3. **What to check:**
@@ -100,16 +98,19 @@ Before testing, make sure you have:
 
 ## Test 3: Extract Reviews Through Onboarding Flow
 
-**Goal:** Verify reviews are extracted as part of the full onboarding process.
+**Goal:** Verify reviews are extracted as part of the full onboarding workflow.
 
-1. Start FionaFast:
+1. Start onboarding workflow:
    ```bash
-   python3 fiona_fast.py
+   curl -X POST http://localhost:8000/api/onboard \
+     -H "Content-Type: application/json" \
+     -d '{"url": "https://www.villasattowngate.com"}'
    ```
 
-2. Run full onboarding:
-   ```
-   You: onboard https://www.villasattowngate.com
+2. Monitor workflow progress:
+   ```bash
+   # Get session_id from response, then check status
+   curl http://localhost:8000/api/onboard/{session_id}/status
    ```
 
 3. **What to check:**

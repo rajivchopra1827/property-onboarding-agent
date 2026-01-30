@@ -38,7 +38,8 @@ Before testing, make sure you have:
 1. Start FionaFast:
    ```bash
    cd backend
-   python3 fiona_fast.py
+   # Start FastAPI server: python -m api.server
+   # Then use API endpoints for testing
    ```
 
 2. Test brand identity extraction:
@@ -94,19 +95,22 @@ Before testing, make sure you have:
 
 ### Test 2a: First extraction (fresh)
 
-1. Extract branding for the first time:
-   ```
-   You: extract brand identity from https://www.villasattowngate.com
+1. Extract branding via onboarding workflow:
+   ```bash
+   curl -X POST http://localhost:8000/api/onboard \
+     -H "Content-Type: application/json" \
+     -d '{"url": "https://www.villasattowngate.com"}'
    ```
    - Should extract fresh and cache branding
-   - Console should show "✓ Cached branding data for {domain}"
-   - Console should show "[Cache Status] ✓ Extracted fresh branding and saved to cache"
+   - Brand identity extraction runs in parallel group (step 2)
 
 ### Test 2b: Second extraction (should use cache)
 
 1. Extract branding again (same URL):
-   ```
-   You: extract brand identity from https://www.villasattowngate.com
+   ```bash
+   curl -X POST http://localhost:8000/api/onboard \
+     -H "Content-Type: application/json" \
+     -d '{"url": "https://www.villasattowngate.com"}'
    ```
    - Should prompt about cache or use cache if `use_cache=True`
    - Console should show "Using cached branding (age: X.X hours)" or "USING CACHE"

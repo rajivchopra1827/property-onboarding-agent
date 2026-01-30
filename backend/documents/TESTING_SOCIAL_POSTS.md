@@ -123,24 +123,17 @@ cd backend
 python3 test_social_posts.py
 ```
 
-## Method 2: Via CLI Agent
+## Method 2: Via API Endpoint
 
-Use the FionaFast CLI agent:
+Social posts can be generated via the API endpoint (if implemented):
 
 ```bash
-cd backend
-python3 fiona_fast.py
+curl -X POST http://localhost:8000/api/properties/{property_id}/social-posts/generate \
+  -H "Content-Type: application/json" \
+  -d '{"post_count": 8}'
 ```
 
-Then in the conversation, say:
-```
-Generate 8 social media posts for property [property-id]
-```
-
-Or:
-```
-Use generate_social_posts tool with property_id [property-id] and post_count 5
-```
+Note: This endpoint may need to be added to the FastAPI server if not already available.
 
 ## Method 3: Check Database Directly
 
