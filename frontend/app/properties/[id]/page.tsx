@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Building2, Image as ImageIcon, Palette, Star, Layout, Tag, MessageSquare, MapPin, Gift } from 'lucide-react';
+import { Badge } from '@/app/components/ui/badge';
+import { Card, CardContent } from '@/app/components/ui/card';
 import { supabase } from '@/lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { Property, PropertyImage, PropertyBranding, PropertyAmenities, PropertyFloorPlan, PropertySpecialOffer } from '@/lib/types';
@@ -915,7 +917,7 @@ export default function PropertyDetailPage() {
 
         <div className="space-y-6">
           {/* Basic Information Card */}
-          <div className="bg-white rounded-lg border border-neutral-200 p-8 shadow-md transition-all duration-300 hover:shadow-lg">
+          <Card className="p-8 shadow-md transition-all duration-300 hover:shadow-lg">
             <h2 className="text-2xl font-bold text-secondary-700 mb-4 font-display flex items-center gap-2">
               <Building2 className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
               Basic Information
@@ -1075,10 +1077,10 @@ export default function PropertyDetailPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
 
           {/* Floor Plans Card */}
-          <div className="bg-white rounded-lg border border-neutral-200 p-8 shadow-md transition-all duration-300 hover:shadow-lg">
+          <Card className="p-8 shadow-md transition-all duration-300 hover:shadow-lg">
             <h2 className="text-2xl font-bold text-secondary-700 mb-4 font-display flex items-center gap-2">
               <Layout className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
               Floor Plans
@@ -1202,7 +1204,8 @@ export default function PropertyDetailPage() {
                     isGenerating={floorPlansExtraction.isLoading}
                   />
                 ) : (
-                  <div className="rounded-lg border border-neutral-200 shadow-sm bg-neutral-50 p-8 text-center">
+                  <Card className="shadow-sm bg-neutral-50">
+                    <CardContent className="p-8 text-center">
                     <div className="max-w-md mx-auto">
                       <Layout className="w-12 h-12 text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
                       <p className="text-neutral-600 mb-2 font-medium">
@@ -1245,15 +1248,16 @@ export default function PropertyDetailPage() {
                           onRetry={floorPlansExtraction.retry}
                         />
                       )}
-                    </div>
-                  </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
               </>
             )}
-          </div>
+          </Card>
 
           {/* Special Offers Card */}
-          <div className="bg-white rounded-lg border border-neutral-200 p-8 shadow-md transition-all duration-300 hover:shadow-lg">
+          <Card className="p-8 shadow-md transition-all duration-300 hover:shadow-lg">
             <h2 className="text-2xl font-bold text-secondary-700 mb-4 font-display flex items-center gap-2">
               <Gift className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
               Special Offers
@@ -1279,9 +1283,9 @@ export default function PropertyDetailPage() {
                   const expirationDate = formatDate(offer.valid_until);
 
                   return (
-                    <div
+                    <Card
                       key={offer.id}
-                      className="border border-primary-200 rounded-lg p-6 bg-primary-50/50 hover:bg-primary-50 transition-colors"
+                      className="p-6 bg-primary-50/50 hover:bg-primary-50 transition-colors shadow-sm"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
@@ -1322,7 +1326,7 @@ export default function PropertyDetailPage() {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </Card>
                   );
                 })}
               </div>
@@ -1334,58 +1338,60 @@ export default function PropertyDetailPage() {
                     isGenerating={specialOffersExtraction.isLoading}
                   />
                 ) : (
-                  <div className="rounded-lg border border-neutral-200 shadow-sm bg-neutral-50 p-8 text-center">
-                    <div className="max-w-md mx-auto">
-                      <Gift className="w-12 h-12 text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
-                      <p className="text-neutral-600 mb-2 font-medium">
-                        No special offers collected yet
-                      </p>
-                      <p className="text-sm text-neutral-500 mb-6">
-                        Special offers and promotions will appear here once collected from the property website.
-                      </p>
-                      <button
-                        onClick={handleExtractSpecialOffers}
-                        disabled={specialOffersExtraction.isLoading}
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-primary-300"
-                      >
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                  <Card className="shadow-sm bg-neutral-50">
+                    <CardContent className="p-8 text-center">
+                      <div className="max-w-md mx-auto">
+                        <Gift className="w-12 h-12 text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
+                        <p className="text-neutral-600 mb-2 font-medium">
+                          No special offers collected yet
+                        </p>
+                        <p className="text-sm text-neutral-500 mb-6">
+                          Special offers and promotions will appear here once collected from the property website.
+                        </p>
+                        <button
+                          onClick={handleExtractSpecialOffers}
+                          disabled={specialOffersExtraction.isLoading}
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-primary-300"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                            />
+                          </svg>
+                          Extract Special Offers
+                        </button>
+                        {specialOffersExtraction.success && (
+                          <StatusMessage
+                            type="success"
+                            message={specialOffersExtraction.success}
+                            onDismiss={() => specialOffersExtraction.clearMessages()}
                           />
-                        </svg>
-                        Extract Special Offers
-                      </button>
-                      {specialOffersExtraction.success && (
-                        <StatusMessage
-                          type="success"
-                          message={specialOffersExtraction.success}
-                          onDismiss={() => specialOffersExtraction.clearMessages()}
-                        />
-                      )}
-                      {specialOffersExtraction.error && (
-                        <StatusMessage
-                          type="error"
-                          message={specialOffersExtraction.error}
-                          onRetry={specialOffersExtraction.retry}
-                        />
-                      )}
-                    </div>
-                  </div>
+                        )}
+                        {specialOffersExtraction.error && (
+                          <StatusMessage
+                            type="error"
+                            message={specialOffersExtraction.error}
+                            onRetry={specialOffersExtraction.retry}
+                          />
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
               </>
             )}
-          </div>
+          </Card>
 
           {/* Brand Identity Card */}
-          <div className="bg-white rounded-lg border border-neutral-200 p-8 shadow-md transition-all duration-300 hover:shadow-lg">
+          <Card className="p-8 shadow-md transition-all duration-300 hover:shadow-lg">
             <h2 className="text-2xl font-bold text-secondary-700 mb-4 font-display flex items-center gap-2">
               <Palette className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
               Brand Identity
@@ -1424,12 +1430,13 @@ export default function PropertyDetailPage() {
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {branding.branding_data.tone.tone_tags.map((tag, index) => (
-                        <span
+                        <Badge
                           key={index}
-                          className="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-xs font-semibold uppercase tracking-wide"
+                          variant="secondary"
+                          className="bg-primary-100 text-primary-700 uppercase tracking-wide shadow-sm"
                         >
                           {tag}
-                        </span>
+                        </Badge>
                       ))}
                     </div>
                   </div>
@@ -1448,7 +1455,7 @@ export default function PropertyDetailPage() {
                         return (
                           <div
                             key={colorName}
-                            className="w-12 h-12 rounded-lg border border-neutral-200 flex-shrink-0 shadow-sm"
+                            className="w-12 h-12 rounded-lg flex-shrink-0 shadow-sm"
                             style={{ backgroundColor: colorValue }}
                             title={colorValue}
                           />
@@ -1466,58 +1473,60 @@ export default function PropertyDetailPage() {
                     isGenerating={brandIdentityExtraction.isLoading}
                   />
                 ) : (
-                  <div className="rounded-lg border border-neutral-200 shadow-sm bg-neutral-50 p-8 text-center">
-                    <div className="max-w-md mx-auto">
-                      <Palette className="w-12 h-12 text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
-                      <p className="text-neutral-600 mb-2 font-medium">
-                        No brand identity collected yet
-                      </p>
-                      <p className="text-sm text-neutral-500 mb-6">
-                        Brand identity information including colors, fonts, tone, and tagline will appear here once collected from the property website.
-                      </p>
-                      <button
-                        onClick={handleExtractBrandIdentity}
-                        disabled={brandIdentityExtraction.isLoading}
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-primary-300"
-                      >
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                  <Card className="shadow-sm bg-neutral-50">
+                    <CardContent className="p-8 text-center">
+                      <div className="max-w-md mx-auto">
+                        <Palette className="w-12 h-12 text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
+                        <p className="text-neutral-600 mb-2 font-medium">
+                          No brand identity collected yet
+                        </p>
+                        <p className="text-sm text-neutral-500 mb-6">
+                          Brand identity information including colors, fonts, tone, and tagline will appear here once collected from the property website.
+                        </p>
+                        <button
+                          onClick={handleExtractBrandIdentity}
+                          disabled={brandIdentityExtraction.isLoading}
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-primary-300"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                            />
+                          </svg>
+                          Extract Brand Identity
+                        </button>
+                        {brandIdentityExtraction.success && (
+                          <StatusMessage
+                            type="success"
+                            message={brandIdentityExtraction.success}
+                            onDismiss={() => brandIdentityExtraction.clearMessages()}
                           />
-                        </svg>
-                        Extract Brand Identity
-                      </button>
-                      {brandIdentityExtraction.success && (
-                        <StatusMessage
-                          type="success"
-                          message={brandIdentityExtraction.success}
-                          onDismiss={() => brandIdentityExtraction.clearMessages()}
-                        />
-                      )}
-                      {brandIdentityExtraction.error && (
-                        <StatusMessage
-                          type="error"
-                          message={brandIdentityExtraction.error}
-                          onRetry={brandIdentityExtraction.retry}
-                        />
-                      )}
-                    </div>
-                  </div>
+                        )}
+                        {brandIdentityExtraction.error && (
+                          <StatusMessage
+                            type="error"
+                            message={brandIdentityExtraction.error}
+                            onRetry={brandIdentityExtraction.retry}
+                          />
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
               </>
             )}
-          </div>
+          </Card>
 
           {/* Images Card */}
-          <div className="bg-white rounded-lg border border-neutral-200 p-8 shadow-md transition-all duration-300 hover:shadow-lg">
+          <Card className="p-8 shadow-md transition-all duration-300 hover:shadow-lg">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-secondary-700 font-display flex items-center gap-2">
                 <ImageIcon className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
@@ -1564,7 +1573,8 @@ export default function PropertyDetailPage() {
                       isGenerating={imagesExtraction.isLoading}
                     />
                   ) : (
-                    <div className="rounded-lg border border-neutral-200 shadow-sm bg-neutral-50 p-8 text-center">
+                    <Card className="shadow-sm bg-neutral-50">
+                    <CardContent className="p-8 text-center">
                       <div className="max-w-md mx-auto">
                         <ImageIcon className="w-12 h-12 text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
                         <p className="text-neutral-600 mb-2 font-medium">
@@ -1608,7 +1618,8 @@ export default function PropertyDetailPage() {
                           />
                         )}
                       </div>
-                    </div>
+                    </CardContent>
+                    </Card>
                   )}
                 </>
               ) : (
@@ -1778,10 +1789,10 @@ export default function PropertyDetailPage() {
                   )}
                 </>
               )}
-          </div>
+          </Card>
 
           {/* Amenities Card */}
-          <div className="bg-white rounded-lg border border-neutral-200 p-8 shadow-md transition-all duration-300 hover:shadow-lg">
+          <Card className="p-8 shadow-md transition-all duration-300 hover:shadow-lg">
             <h2 className="text-2xl font-bold text-secondary-700 mb-4 font-display flex items-center gap-2">
               <Star className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
               Amenities
@@ -1842,7 +1853,8 @@ export default function PropertyDetailPage() {
                     isGenerating={amenitiesExtraction.isLoading}
                   />
                 ) : (
-                  <div className="rounded-lg border border-neutral-200 shadow-sm bg-neutral-50 p-8 text-center">
+                  <Card className="shadow-sm bg-neutral-50">
+                    <CardContent className="p-8 text-center">
                     <div className="max-w-md mx-auto">
                       <Star className="w-12 h-12 text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
                       <p className="text-neutral-600 mb-2 font-medium">
@@ -1885,12 +1897,13 @@ export default function PropertyDetailPage() {
                           onRetry={amenitiesExtraction.retry}
                         />
                       )}
-                    </div>
-                  </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
               </>
             )}
-          </div>
+          </Card>
 
           {/* Social Media Posts Section */}
           <SocialPostsSection propertyId={propertyId} />

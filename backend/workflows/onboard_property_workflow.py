@@ -21,6 +21,7 @@ from agno_tools.extract_floor_plans_tool import extract_floor_plans_tool
 from agno_tools.extract_special_offers_tool import extract_special_offers_tool
 from agno_tools.extract_reviews_tool import extract_reviews_tool
 from agno_tools.find_competitors_tool import find_competitors_tool
+from agno_tools.classify_images_tool import classify_images_tool
 
 from tools.cache_manager import get_domain_from_url
 from database import CacheRepository, OnboardingRepository
@@ -372,6 +373,46 @@ def create_onboard_property_workflow(
             progress_tracker("competitors", False, str(e))
             return {"error": str(e)}
     
+    # Step 2.5: Classify images (depends on images and amenities from parallel step)
+    def step2_5_classify_images(context: Dict[str, Any]) -> Dict[str, Any]:
+        """Classify images using AI (needs property_id and benefits from amenities)."""
+        try:
+            # Get property_id from step 1 result
+            step1_result = context.get("extract_property_info", {})
+            property_id = step1_result.get("property_id") or context.get("property_id")
+            if not property_id:
+                raise Exception("Property ID not available from step 1")
+            
+            # Check if images were extracted (should be available from parallel step)
+            # But don't fail if images extraction had errors - classification can still run
+            # on any images that exist in the database
+            
+            onboarding_repo.update_progress(
+                session_id=session_id,
+                status="in_progress",
+                current_step="classify_images"
+            )
+            
+            result = classify_images_tool.func(
+                property_id=property_id,
+                force_reclassify=False,
+                batch_size=5
+            )
+            
+            if "error" in result or not result.get("success"):
+                error_msg = result.get("error") or "Image classification failed"
+                progress_tracker("classify_images", False, error_msg)
+                # Don't raise - continue onboarding even if classification fails
+                return {"error": error_msg}
+            
+            progress_tracker("classify_images", True)
+            return {"classify_images": result}
+        except Exception as e:
+            # Log error but don't fail onboarding
+            error_msg = str(e)
+            progress_tracker("classify_images", False, error_msg)
+            return {"error": error_msg}
+    
     # Create workflow
     workflow = Workflow(
         name="onboard_property",
@@ -379,25 +420,27 @@ def create_onboard_property_workflow(
         steps=[
             Step(
                 name="extract_property_info",
-                func=step1_extract_property_info
+                executor=step1_extract_property_info
             ),
             Parallel(
-                name="parallel_extractions",
-                steps=[
-                    Step(name="extract_images", func=step2_extract_images),
-                    Step(name="extract_brand_identity", func=step2_extract_brand_identity),
-                    Step(name="extract_amenities", func=step2_extract_amenities),
-                    Step(name="extract_floor_plans", func=step2_extract_floor_plans),
-                    Step(name="extract_special_offers", func=step2_extract_special_offers),
-                ]
+                Step(name="extract_images", executor=step2_extract_images),
+                Step(name="extract_brand_identity", executor=step2_extract_brand_identity),
+                Step(name="extract_amenities", executor=step2_extract_amenities),
+                Step(name="extract_floor_plans", executor=step2_extract_floor_plans),
+                Step(name="extract_special_offers", executor=step2_extract_special_offers),
+                name="parallel_extractions"
+            ),
+            Step(
+                name="classify_images",
+                executor=step2_5_classify_images
             ),
             Step(
                 name="extract_reviews",
-                func=step3_extract_reviews
+                executor=step3_extract_reviews
             ),
             Step(
                 name="find_competitors",
-                func=step3_find_competitors
+                executor=step3_find_competitors
             ),
         ]
     )

@@ -2,6 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/app/components/ui/card';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { Label } from '@/app/components/ui/label';
+import { Checkbox } from '@/app/components/ui/checkbox';
+import { Alert, AlertDescription } from '@/app/components/ui/alert';
 
 interface AddPropertyFormProps {
   onClose?: () => void;
@@ -76,72 +82,71 @@ export default function AddPropertyForm({ onClose }: AddPropertyFormProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-neutral-200 p-6 shadow-md">
-      <h2 className="text-2xl font-bold text-secondary-700 mb-4 font-display">
-        Add New Property
-      </h2>
-      <p className="text-neutral-700 mb-6">
-        Enter the website URL of the property you want to onboard. We'll extract all the information automatically.
-      </p>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="url" className="block text-sm font-medium text-neutral-800 mb-2">
-            Property Website URL
-          </label>
-          <input
-            type="url"
-            id="url"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://example.com"
-            className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-neutral-900"
-            disabled={loading}
-            required
-          />
-        </div>
-
-        <div className="flex items-start">
-          <input
-            type="checkbox"
-            id="force_reonboard"
-            checked={forceReonboard}
-            onChange={(e) => setForceReonboard(e.target.checked)}
-            disabled={loading}
-            className="mt-1 h-4 w-4 text-primary-500 focus:ring-primary-500 border-neutral-300 rounded"
-          />
-          <label htmlFor="force_reonboard" className="ml-2 text-sm text-neutral-700">
-            Force re-onboard (overwrite existing data)
-          </label>
-        </div>
-
-        {error && (
-          <div className="bg-error-light border border-error text-error-dark px-4 py-3 rounded-lg">
-            {error}
-          </div>
-        )}
-
-        <div className="flex gap-3">
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex-1 h-12 bg-primary-500 text-white font-semibold rounded-lg shadow-primary transition-all duration-200 hover:bg-primary-600 hover:shadow-primary-lg hover:-translate-y-0.5 active:translate-y-0 focus:outline-none focus:ring-4 focus:ring-primary-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-          >
-            {loading ? 'Starting...' : 'Start Onboarding'}
-          </button>
-          {onClose && (
-            <button
-              type="button"
-              onClick={onClose}
+    <Card className="shadow-md">
+      <CardHeader>
+        <CardTitle className="text-2xl font-display text-secondary-700">
+          Add New Property
+        </CardTitle>
+        <CardDescription className="text-neutral-700">
+          Enter the website URL of the property you want to onboard. We'll extract all the information automatically.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="url">Property Website URL</Label>
+            <Input
+              type="url"
+              id="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://example.com"
               disabled={loading}
-              className="px-6 h-12 border border-neutral-300 text-neutral-700 font-semibold rounded-lg transition-all duration-200 hover:bg-neutral-50 focus:outline-none focus:ring-4 focus:ring-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Cancel
-            </button>
+              required
+            />
+          </div>
+
+          <div className="flex items-start space-x-2">
+            <Checkbox
+              id="force_reonboard"
+              checked={forceReonboard}
+              onCheckedChange={(checked) => setForceReonboard(checked === true)}
+              disabled={loading}
+            />
+            <Label htmlFor="force_reonboard" className="text-sm font-normal cursor-pointer">
+              Force re-onboard (overwrite existing data)
+            </Label>
+          </div>
+
+          {error && (
+            <Alert variant="destructive" className="bg-error-light text-error-dark shadow-sm">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
-        </div>
-      </form>
-    </div>
+
+          <div className="flex gap-3">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="flex-1 h-12 shadow-primary hover:shadow-primary-lg hover:-translate-y-0.5 active:translate-y-0 disabled:hover:translate-y-0"
+            >
+              {loading ? 'Starting...' : 'Start Onboarding'}
+            </Button>
+            {onClose && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={loading}
+                className="px-6 h-12"
+              >
+                Cancel
+              </Button>
+            )}
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
 

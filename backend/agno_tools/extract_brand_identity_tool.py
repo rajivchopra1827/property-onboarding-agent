@@ -285,7 +285,31 @@ def extract_brand_identity(
             firecrawl_client = get_firecrawl_client()
             
             print(f"Calling Firecrawl API with branding format...")
-            result = firecrawl_client.scrape(url, formats=["branding"])
+            try:
+                result = firecrawl_client.scrape(url, formats=["branding"])
+            except Exception as firecrawl_error:
+                error_str = str(firecrawl_error)
+                error_lower = error_str.lower()
+                
+                # Check for payment/credit related errors
+                if ("402" in error_str or 
+                    "payment required" in error_lower or 
+                    "insufficient credits" in error_lower or
+                    "insufficient credit" in error_lower):
+                    print(f"\n❌ FIRECRAWL PAYMENT/CREDIT ERROR:")
+                    print(f"   Your Firecrawl account has insufficient credits or payment is required.")
+                    print(f"   Error details: {error_str}")
+                    print(f"   Please check your Firecrawl account balance at https://firecrawl.dev/pricing")
+                    print(f"   Or contact support at help@firecrawl.com")
+                    return {
+                        "error": "Firecrawl account has insufficient credits or payment required. Please check your account balance.",
+                        "error_type": "firecrawl_payment_required",
+                        "error_details": error_str,
+                        "branding_data": None
+                    }
+                else:
+                    # Re-raise other errors to be handled by outer exception handler
+                    raise
             
             branding_data = None
             if result:

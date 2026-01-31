@@ -110,19 +110,31 @@ async def onboard_property(
     onboarding_repo = OnboardingRepository()
     
     # Check if property already exists (skip if force_reonboard is true)
+    # Use timeout to prevent hanging on slow database queries
     if not request.force_reonboard:
-        from database import PropertyRepository
-        property_repo = PropertyRepository()
-        existing_property = property_repo.get_property_by_website_url(url)
-        
-        if existing_property:
-            return OnboardResponse(
-                success=True,
-                session_id=None,
-                property_id=existing_property.id,
-                status="already_exists",
-                message="Property already exists"
+        try:
+            from database import PropertyRepository
+            property_repo = PropertyRepository()
+            # Add timeout to prevent hanging (5 seconds max)
+            existing_property = await asyncio.wait_for(
+                asyncio.to_thread(property_repo.get_property_by_website_url, url),
+                timeout=5.0
             )
+            
+            if existing_property:
+                return OnboardResponse(
+                    success=True,
+                    session_id=None,
+                    property_id=existing_property.id,
+                    status="already_exists",
+                    message="Property already exists"
+                )
+        except asyncio.TimeoutError:
+            # If check times out, proceed with onboarding anyway
+            print(f"Warning: Property existence check timed out for {url}, proceeding with onboarding")
+        except Exception as e:
+            # If check fails, proceed with onboarding anyway
+            print(f"Warning: Error checking if property exists: {e}, proceeding with onboarding")
     
     # Create onboarding session
     session = OnboardingSession(

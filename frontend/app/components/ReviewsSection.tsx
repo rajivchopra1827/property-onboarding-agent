@@ -4,6 +4,10 @@ import { useEffect, useState, Fragment } from 'react';
 import { MessageSquare } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { PropertyReview, PropertyReviewsSummary } from '@/lib/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
 
 interface ReviewsSectionProps {
   propertyId: string;
@@ -177,14 +181,14 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
 
     return (
       <Fragment key={review.id}>
-        <tr
-          className={`border-b border-neutral-100 transition-all ${
+        <TableRow
+          className={`transition-all ${
             shouldShowExpand ? 'hover:bg-neutral-50 cursor-pointer' : ''
           }`}
           onClick={() => shouldShowExpand && toggleReviewExpansion(review.id)}
         >
           {/* Reviewer Column */}
-          <td className="py-4 px-4 align-top">
+          <TableCell className="align-top">
             <div className="space-y-1.5">
               {/* Row 1: Name and Avatar on same line */}
               <div className="flex items-center gap-2">
@@ -208,9 +212,9 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
                     {review.reviewer_name || 'Anonymous'}
                   </p>
                   {review.is_local_guide && (
-                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
+                    <Badge variant="secondary" className="text-xs flex-shrink-0 bg-blue-100 text-blue-700">
                       Local Guide
-                    </span>
+                    </Badge>
                   )}
                 </div>
               </div>
@@ -230,10 +234,10 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
                 </span>
               </div>
             </div>
-          </td>
+          </TableCell>
 
           {/* Review Text Column */}
-          <td className="py-4 px-4 align-top">
+          <TableCell className="align-top">
             <div className="space-y-2">
               {/* Review Text */}
               <div>
@@ -250,69 +254,22 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
               {(hasOwnerResponse || shouldShowExpand) && (
                 <div className="flex items-center gap-3 flex-wrap">
                   {hasOwnerResponse && (
-                    <div className="flex items-center gap-1.5 bg-primary-50 border border-primary-200 rounded-full px-3 py-1.5">
-                      <svg
-                        className="w-4 h-4 text-primary-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
-                        />
-                      </svg>
-                      <span className="text-xs font-semibold text-primary-700">
-                        Owner Response
-                      </span>
-                    </div>
+                    <Badge variant="outline" className="bg-primary-50 text-primary-700 shadow-sm">
+                      Owner Response
+                    </Badge>
                   )}
                   {shouldShowExpand && (
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleReviewExpansion(review.id);
                       }}
-                      className="flex items-center gap-1 text-primary-600 hover:text-primary-700 font-medium text-sm"
+                      className="h-auto p-0 text-primary-600 hover:text-primary-700 font-medium text-sm"
                     >
-                      {isExpanded ? (
-                        <>
-                          <span>Read less</span>
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 15l7-7 7 7"
-                            />
-                          </svg>
-                        </>
-                      ) : (
-                        <>
-                          <span>Read more</span>
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        </>
-                      )}
-                    </button>
+                      {isExpanded ? 'Read less' : 'Read more'}
+                    </Button>
                   )}
                 </div>
               )}
@@ -334,17 +291,19 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
                 </div>
               )}
             </div>
-          </td>
-        </tr>
+          </TableCell>
+        </TableRow>
       </Fragment>
     );
   };
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg border border-neutral-200 p-8 shadow-md">
-        <div className="text-center text-neutral-600">Loading reviews...</div>
-      </div>
+      <Card>
+        <CardContent className="p-8">
+          <div className="text-center text-neutral-600">Loading reviews...</div>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -358,27 +317,31 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
     : allNegativeReviews.slice(0, 5);
 
   return (
-    <div className="bg-white rounded-lg border border-neutral-200 p-8 shadow-md transition-all duration-300 hover:shadow-lg">
-      <h2 className="text-2xl font-bold text-secondary-700 mb-6 font-display flex items-center gap-2">
-        <MessageSquare className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
-        Reviews
-      </h2>
-
+    <Card className="transition-all duration-300 hover:shadow-lg">
+      <CardHeader>
+        <CardTitle className="text-2xl font-display text-secondary-700 flex items-center gap-2">
+          <MessageSquare className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
+          Reviews
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
       {/* Empty State */}
       {!reviewsSummary &&
       allPositiveReviews.length === 0 &&
       allNegativeReviews.length === 0 ? (
-        <div className="rounded-lg border border-neutral-200 shadow-sm bg-neutral-50 p-8 text-center">
-          <div className="max-w-md mx-auto">
-            <MessageSquare className="w-12 h-12 text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
-            <p className="text-neutral-600 mb-2 font-medium">
-              No reviews collected yet
-            </p>
-            <p className="text-sm text-neutral-500">
-              Review information including ratings, sentiment summaries, and individual reviews will appear here once collected.
-            </p>
-          </div>
-        </div>
+        <Card className="bg-neutral-50">
+          <CardContent className="p-8 text-center">
+            <div className="max-w-md mx-auto">
+              <MessageSquare className="w-12 h-12 text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
+              <p className="text-neutral-600 mb-2 font-medium">
+                No reviews collected yet
+              </p>
+              <p className="text-sm text-neutral-500">
+                Review information including ratings, sentiment summaries, and individual reviews will appear here once collected.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       ) : (
         <>
 
@@ -453,32 +416,30 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
               </p>
             </div>
             {allPositiveReviews.length > 5 && (
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setPositiveReviewsExpanded(!positiveReviewsExpanded)}
-                className="text-sm text-secondary-600 hover:text-secondary-700 font-medium transition-colors"
+                className="text-sm text-secondary-600 hover:text-secondary-700"
               >
                 {positiveReviewsExpanded ? 'Show less' : `Show all (${allPositiveReviews.length})`}
-              </button>
+              </Button>
             )}
           </div>
           {displayedPositiveReviews.length > 0 ? (
-            <div className="overflow-x-auto rounded-lg border border-neutral-200 shadow-sm">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-neutral-200 bg-neutral-50">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-800 uppercase tracking-wide w-1/3">
-                      Reviewer
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-800 uppercase tracking-wide">
-                      Review
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-neutral-50">
+                    <TableHead className="w-1/3 uppercase tracking-wide">Reviewer</TableHead>
+                    <TableHead className="uppercase tracking-wide">Review</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {displayedPositiveReviews.map((review) => renderReviewRow(review))}
-                </tbody>
-              </table>
-            </div>
+                </TableBody>
+              </Table>
+            </Card>
           ) : (
             <p className="text-neutral-500 text-sm italic">
               No positive reviews to display.
@@ -498,32 +459,30 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
               </p>
             </div>
             {allNegativeReviews.length > 5 && (
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setNegativeReviewsExpanded(!negativeReviewsExpanded)}
-                className="text-sm text-secondary-600 hover:text-secondary-700 font-medium transition-colors"
+                className="text-sm text-secondary-600 hover:text-secondary-700"
               >
                 {negativeReviewsExpanded ? 'Show less' : `Show all (${allNegativeReviews.length})`}
-              </button>
+              </Button>
             )}
           </div>
           {displayedNegativeReviews.length > 0 ? (
-            <div className="overflow-x-auto rounded-lg border border-neutral-200 shadow-sm">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-neutral-200 bg-neutral-50">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-800 uppercase tracking-wide w-1/3">
-                      Reviewer
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-800 uppercase tracking-wide">
-                      Review
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-neutral-50">
+                    <TableHead className="w-1/3 uppercase tracking-wide">Reviewer</TableHead>
+                    <TableHead className="uppercase tracking-wide">Review</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {displayedNegativeReviews.map((review) => renderReviewRow(review))}
-                </tbody>
-              </table>
-            </div>
+                </TableBody>
+              </Table>
+            </Card>
           ) : (
             <p className="text-neutral-500 text-sm italic">
               No negative reviews to display.
@@ -533,7 +492,8 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
       </div>
         </>
       )}
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 

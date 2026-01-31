@@ -1,7 +1,39 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 :root {
-  /* Primary Colors (Pink) */
+  /* shadcn/ui Theme Variables (HSL format) */
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(0 0% 13%);
+  
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(0 0% 13%);
+  
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(0 0% 13%);
+  
+  --primary: hsl(330 100% 50%); /* Main brand pink #FF1B8D */
+  --primary-foreground: hsl(0 0% 100%);
+  
+  --secondary: hsl(280 70% 30%); /* Deep purple #4A148C */
+  --secondary-foreground: hsl(0 0% 100%);
+  
+  --muted: hsl(0 0% 96%);
+  --muted-foreground: hsl(0 0% 45%);
+  
+  --accent: hsl(330 100% 97%); /* Light pink */
+  --accent-foreground: hsl(330 100% 50%);
+  
+  --destructive: hsl(0 84% 60%); /* Error red */
+  --destructive-foreground: hsl(0 0% 100%);
+  
+  --border: hsl(0 0% 90%);
+  --input: hsl(0 0% 90%);
+  --ring: hsl(330 100% 50%);
+  
+  --radius: 0.5rem;
+
+  /* Primary Colors (Pink) - Preserved for backward compatibility */
   --primary-50: #FFF0F7;
   --primary-100: #FFE0F0;
   --primary-200: #FFC7E3;
@@ -13,7 +45,7 @@
   --primary-800: #9E0056;
   --primary-900: #7A0043;
 
-  /* Secondary Colors (Purple) */
+  /* Secondary Colors (Purple) - Preserved for backward compatibility */
   --secondary-50: #F3E5F5;
   --secondary-100: #E1BEE7;
   --secondary-200: #CE93D8;
@@ -25,7 +57,7 @@
   --secondary-800: #38006B;
   --secondary-900: #260049;
 
-  /* Neutral Colors */
+  /* Neutral Colors - Preserved for backward compatibility */
   --neutral-50: #FAFAFA;
   --neutral-100: #F5F5F5;
   --neutral-200: #EEEEEE;
@@ -37,7 +69,7 @@
   --neutral-800: #424242;
   --neutral-900: #212121;
 
-  /* Semantic Colors */
+  /* Semantic Colors - Preserved for backward compatibility */
   --success: #00C853;
   --success-light: #B9F6CA;
   --success-dark: #00A043;
@@ -50,14 +82,31 @@
   --info: #00B0FF;
   --info-light: #B3E5FC;
   --info-dark: #0091EA;
-
-  /* Background */
-  --background: #ffffff;
-  --foreground: #212121;
 }
 
 @theme inline {
-  /* Colors */
+  /* shadcn/ui Theme Colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Brand Colors - Preserved for backward compatibility */
   --color-primary-50: var(--primary-50);
   --color-primary-100: var(--primary-100);
   --color-primary-200: var(--primary-200);
@@ -103,9 +152,6 @@
   --color-info: var(--info);
   --color-info-light: var(--info-light);
   --color-info-dark: var(--info-dark);
-
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
 
   /* Fonts */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;

@@ -4,6 +4,11 @@ import { useEffect, useState } from 'react';
 import { Megaphone } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { PropertySocialPost } from '@/lib/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 
 interface SocialPostsSectionProps {
   propertyId: string;
@@ -148,64 +153,74 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg border border-neutral-200 p-8 shadow-md">
-        <h2 className="text-2xl font-bold text-secondary-700 mb-4 font-display flex items-center gap-2">
-          <Megaphone className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
-          Social Media Posts
-        </h2>
-        <p className="text-neutral-600">Loading posts...</p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl font-display text-secondary-700 flex items-center gap-2">
+            <Megaphone className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
+            Social Media Posts
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-neutral-600">Loading posts...</p>
+        </CardContent>
+      </Card>
     );
   }
 
   if (posts.length === 0 && !isGenerating) {
     return (
-      <div className="bg-white rounded-lg border border-neutral-200 p-8 shadow-md transition-all duration-300 hover:shadow-lg">
-        <h2 className="text-2xl font-bold text-secondary-700 mb-4 font-display flex items-center gap-2">
-          <Megaphone className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
-          Social Media Posts
-        </h2>
-        <div className="rounded-lg border border-neutral-200 shadow-sm bg-neutral-50 p-8 text-center">
-          <div className="max-w-md mx-auto">
-            <Megaphone className="w-12 h-12 text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
-            <p className="text-neutral-600 mb-2 font-medium">
-              Ready to create some magic?
-            </p>
-            <p className="text-sm text-neutral-500 mb-6">
-              Click the button below and we'll create amazing, ready-to-post social media content for you!
-            </p>
-            
-            {/* Generate Button */}
-            <button
-              onClick={handleGeneratePosts}
-              disabled={isGenerating}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-primary-300"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-                />
-              </svg>
-              Generate Posts
-            </button>
+      <Card className="transition-all duration-300 hover:shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl font-display text-secondary-700 flex items-center gap-2">
+            <Megaphone className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
+            Social Media Posts
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Card className="bg-neutral-50">
+            <CardContent className="p-8 text-center">
+              <div className="max-w-md mx-auto">
+                <Megaphone className="w-12 h-12 text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
+                <p className="text-neutral-600 mb-2 font-medium">
+                  Ready to create some magic?
+                </p>
+                <p className="text-sm text-neutral-500 mb-6">
+                  Click the button below and we'll create amazing, ready-to-post social media content for you!
+                </p>
+                
+                {/* Generate Button */}
+                <Button
+                  onClick={handleGeneratePosts}
+                  disabled={isGenerating}
+                  className="inline-flex items-center gap-2"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                    />
+                  </svg>
+                  Generate Posts
+                </Button>
 
-            {/* Error Message */}
-            {errorMessage && (
-              <div className="mt-4 p-3 bg-error-light border border-error-dark rounded-lg">
-                <p className="text-sm text-error-dark">{errorMessage}</p>
+                {/* Error Message */}
+                {errorMessage && (
+                  <div className="mt-4 p-3 bg-error-light border border-error-dark rounded-lg">
+                    <p className="text-sm text-error-dark">{errorMessage}</p>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </div>
-      </div>
+            </CardContent>
+          </Card>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -216,12 +231,16 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
     const strokeDashoffset = circumference - (currentProgress / 100) * circumference;
 
     return (
-      <div className="bg-white rounded-lg border border-neutral-200 p-8 shadow-md transition-all duration-300 hover:shadow-lg">
-        <h2 className="text-2xl font-bold text-secondary-700 mb-4 font-display flex items-center gap-2">
-          <Megaphone className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
-          Social Media Posts
-        </h2>
-        <div className="rounded-lg border border-neutral-200 shadow-sm bg-gradient-to-br from-neutral-50 via-primary-50/30 to-secondary-50/30 p-8 text-center">
+      <Card className="transition-all duration-300 hover:shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl font-display text-secondary-700 flex items-center gap-2">
+            <Megaphone className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
+            Social Media Posts
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Card className="bg-gradient-to-br from-neutral-50 via-primary-50/30 to-secondary-50/30">
+            <CardContent className="p-8 text-center">
           <div className="max-w-md mx-auto">
             {/* Main Loading Container */}
             <div className="flex flex-col items-center justify-center gap-6">
@@ -349,97 +368,89 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
               </div>
             </div>
           </div>
-        </div>
-      </div>
+            </CardContent>
+          </Card>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg border border-neutral-200 p-8 shadow-md transition-all duration-300 hover:shadow-lg">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-secondary-700 font-display flex items-center gap-2">
-          <Megaphone className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
-          Social Media Posts ({posts.length})
-        </h2>
-        {successMessage && (
-          <div className="px-4 py-2 bg-success-light border border-success-dark rounded-lg">
-            <p className="text-sm text-success-dark font-medium">{successMessage}</p>
-          </div>
-        )}
-      </div>
+    <Card className="transition-all duration-300 hover:shadow-lg">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-2xl font-display text-secondary-700 flex items-center gap-2">
+            <Megaphone className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
+            Social Media Posts ({posts.length})
+          </CardTitle>
+          {successMessage && (
+            <div className="px-4 py-2 bg-success-light rounded-lg shadow-sm">
+              <p className="text-sm text-success-dark font-medium">{successMessage}</p>
+            </div>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {posts.map((post) => (
-          <div
+          <Card
             key={post.id}
-            className="border border-neutral-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+            className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
             onClick={() => setSelectedPost(post)}
           >
             {/* Mockup Image or Original Image */}
             <div className="relative aspect-square bg-neutral-100">
-              <img
-                src={post.image_url}
-                alt={`${themeDisplayNames[post.theme] || post.theme} post`}
-                className="w-full h-full object-cover"
-              />
+              {post.image_url ? (
+                <img
+                  src={post.image_url}
+                  alt={`${themeDisplayNames[post.theme] || post.theme} post`}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-neutral-100">
+                  <Megaphone className="w-12 h-12 text-neutral-300" />
+                </div>
+              )}
               {/* Theme Badge */}
-              <div className="absolute top-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-xs font-semibold uppercase">
+              <Badge 
+                variant="secondary" 
+                className="absolute top-2 left-2 bg-black/70 text-white uppercase"
+              >
                 {themeDisplayNames[post.theme] || post.theme}
-              </div>
+              </Badge>
             </div>
 
             {/* Post Info */}
-            <div className="p-4">
+            <CardContent className="p-4">
               <p className="text-sm text-neutral-600 mb-2 line-clamp-2">
                 {post.caption}
               </p>
               <div className="flex items-center justify-between text-xs text-neutral-500">
-                <span>{post.hashtags.length} hashtags</span>
+                <span>{post.hashtags?.length || 0} hashtags</span>
                 {post.cta && (
                   <span className="text-primary-600 font-medium">{post.cta}</span>
                 )}
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
       {/* Post Detail Modal */}
       {selectedPost && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={() => setSelectedPost(null)}
-        >
-          <div
-            className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="sticky top-0 bg-white border-b border-neutral-200 px-6 py-4 flex items-center justify-between">
-              <h3 className="text-xl font-bold text-secondary-700">
+        <Dialog open={!!selectedPost} onOpenChange={(open) => !open && setSelectedPost(null)}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-xl text-secondary-700">
                 {themeDisplayNames[selectedPost.theme] || selectedPost.theme} Post
-              </h3>
-              <button
-                onClick={() => setSelectedPost(null)}
-                className="text-neutral-500 hover:text-neutral-700 transition-colors"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                  className="w-6 h-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            <div className="p-6 space-y-6">
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6">
               {/* Image */}
               <div className="relative aspect-square bg-neutral-100 rounded-lg overflow-hidden">
                 <img
@@ -472,12 +483,13 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {selectedPost.hashtags.map((tag, index) => (
-                      <span
+                      <Badge
                         key={index}
-                        className="px-2 py-1 bg-primary-100 text-primary-700 rounded text-xs font-medium"
+                        variant="outline"
+                        className="bg-primary-100 text-primary-700 shadow-sm"
                       >
                         #{tag}
-                      </span>
+                      </Badge>
                     ))}
                   </div>
                 </div>
@@ -513,10 +525,11 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 

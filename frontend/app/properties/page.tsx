@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { Property } from '@/lib/types';
 import AddPropertyForm from '@/app/components/AddPropertyForm';
+import { Card, CardContent } from '@/app/components/ui/card';
+import { Checkbox } from '@/app/components/ui/checkbox';
+import { Button } from '@/app/components/ui/button';
 
 export default function PropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -122,12 +125,12 @@ export default function PropertiesPage() {
                 Select a property to view its details and images
               </p>
             </div>
-            <button
+            <Button
               onClick={() => setShowAddForm(true)}
-              className="h-12 bg-primary-500 text-white font-semibold px-6 rounded-lg shadow-primary transition-all duration-200 hover:bg-primary-600 hover:shadow-primary-lg hover:-translate-y-0.5 active:translate-y-0 focus:outline-none focus:ring-4 focus:ring-primary-300"
+              className="h-12 shadow-primary hover:shadow-primary-lg hover:-translate-y-0.5 active:translate-y-0"
             >
               + Add New Property
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -191,70 +194,73 @@ export default function PropertiesPage() {
               const isSelected = selectedPropertyIds.includes(property.id);
 
               return (
-                <div
+                <Card
                   key={property.id}
-                  className="relative"
+                  className={`
+                    transition-all duration-300 cursor-pointer
+                    ${isSelected
+                      ? 'shadow-primary ring-2 ring-primary-200'
+                      : 'hover:shadow-lg hover:-translate-y-1'
+                    }
+                  `}
+                  onClick={() => {
+                    if (compareMode) {
+                      handlePropertySelect(property.id, !isSelected);
+                    }
+                  }}
                 >
-                  {/* Checkbox overlay (only in compare mode) */}
-                  {compareMode && (
-                    <div className="absolute top-4 left-4 z-10">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={(e) => handlePropertySelect(property.id, e.target.checked)}
-                        className="w-5 h-5 text-primary-500 bg-white border-neutral-300 rounded focus:ring-primary-500 focus:ring-2 cursor-pointer"
-                        onClick={(e) => e.stopPropagation()}
-                      />
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-3">
+                      {compareMode && (
+                        <div className="pt-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={(checked) => handlePropertySelect(property.id, checked === true)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <Link
+                          href={compareMode ? '#' : `/properties/${property.id}`}
+                          onClick={(e) => {
+                            if (compareMode) {
+                              e.preventDefault();
+                            }
+                          }}
+                          className="block"
+                        >
+                          <h2 className="text-xl font-semibold text-neutral-900 mb-2">
+                            {getDisplayName(property)}
+                          </h2>
+                          {getAddress(property) && (
+                            <p className="text-sm text-neutral-700 mb-2">
+                              {getAddress(property)}
+                            </p>
+                          )}
+                          {property.website_url && (
+                            <p className="text-xs text-neutral-600 truncate">
+                              {property.website_url}
+                            </p>
+                          )}
+                          {!compareMode && (
+                            <div className="mt-4 text-sm text-primary-500 font-medium">
+                              View Details →
+                            </div>
+                          )}
+                          {compareMode && isSelected && (
+                            <div className="mt-4 flex items-center gap-2 text-sm text-primary-600 font-medium">
+                              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                              Selected
+                            </div>
+                          )}
+                        </Link>
+                      </div>
                     </div>
-                  )}
-
-                  {/* Property card */}
-                  <Link
-                    href={compareMode ? '#' : `/properties/${property.id}`}
-                    onClick={(e) => {
-                      if (compareMode) {
-                        e.preventDefault();
-                        handlePropertySelect(property.id, !isSelected);
-                      }
-                    }}
-                    className={`
-                      block bg-white rounded-lg border p-6 shadow-md transition-all duration-300
-                      ${isSelected
-                        ? 'border-primary-500 shadow-primary ring-2 ring-primary-200'
-                        : 'border-neutral-200 hover:shadow-lg hover:-translate-y-1 hover:border-primary-200'
-                      }
-                      ${compareMode ? 'cursor-pointer' : ''}
-                      focus:outline-none focus:ring-4 focus:ring-primary-300
-                    `}
-                  >
-                    <h2 className="text-xl font-semibold text-neutral-900 mb-2">
-                      {getDisplayName(property)}
-                    </h2>
-                    {getAddress(property) && (
-                      <p className="text-sm text-neutral-700 mb-2">
-                        {getAddress(property)}
-                      </p>
-                    )}
-                    {property.website_url && (
-                      <p className="text-xs text-neutral-600 truncate">
-                        {property.website_url}
-                      </p>
-                    )}
-                    {!compareMode && (
-                      <div className="mt-4 text-sm text-primary-500 font-medium">
-                        View Details →
-                      </div>
-                    )}
-                    {compareMode && isSelected && (
-                      <div className="mt-4 flex items-center gap-2 text-sm text-primary-600 font-medium">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        Selected
-                      </div>
-                    )}
-                  </Link>
-                </div>
+                  </CardContent>
+                </Card>
               );
             })}
           </div>

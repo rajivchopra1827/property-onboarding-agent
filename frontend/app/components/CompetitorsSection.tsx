@@ -5,6 +5,10 @@ import { MapPin } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Competitor } from '@/lib/types';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
 
 // #region agent log
 const DEBUG_LOG_PATH = '/Users/rajivchopra/Property Onboarding Agent/.cursor/debug-layout.log';
@@ -516,7 +520,8 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
           <p className="text-sm text-neutral-600 mb-4">
             {subtitle}
           </p>
-          <div className="rounded-lg border border-neutral-200 shadow-sm bg-neutral-50 p-8 text-center">
+          <Card className="shadow-sm bg-neutral-50">
+            <CardContent className="p-8 text-center">
             <div className="max-w-md mx-auto">
               <svg
                 className="w-12 h-12 text-neutral-400 mx-auto mb-4"
@@ -544,7 +549,8 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
                 Try checking the Top Competitors section for highly-rated properties within 5 miles.
               </p>
             </div>
-          </div>
+          </CardContent>
+        </Card>
         </div>
       );
     }
@@ -671,7 +677,7 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
 
         <div 
           ref={title === 'Top Competitors' ? topCompetitorsTableRef : null}
-          className="overflow-x-auto rounded-lg border border-neutral-200 shadow-sm"
+          className="overflow-x-auto rounded-lg shadow-sm"
         >
           <table className="w-full">
             <thead>
@@ -836,7 +842,8 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
 
   if (showLoadingState) {
     return (
-      <div className="bg-white rounded-lg border border-neutral-200 p-8 shadow-md">
+      <Card>
+        <CardContent className="p-8">
         {isGeneratingCompetitors ? (
           // Generation loading state
           <div className="text-center">
@@ -882,21 +889,26 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
           // Initial loading state
           <div className="text-center text-neutral-600">Loading competitors...</div>
         )}
-      </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg border border-neutral-200 p-8 shadow-md transition-all duration-300 hover:shadow-lg">
-      <h2 className="text-2xl font-bold text-secondary-700 mb-6 font-display flex items-center gap-2">
-        <MapPin className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
-        Competitors
-      </h2>
+    <Card className="transition-all duration-300 hover:shadow-lg">
+      <CardHeader>
+        <CardTitle className="text-2xl font-display text-secondary-700 flex items-center gap-2">
+          <MapPin className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
+          Competitors
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
 
       {/* Empty State - Show when no competitors exist in any category */}
       {allTopCompetitors.length === 0 && allClosestCompetitors.length === 0 && watchedCompetitors.length === 0 ? (
-        <div className="rounded-lg border border-neutral-200 shadow-sm bg-neutral-50 p-8 text-center">
-          <div className="max-w-md mx-auto">
+        <Card className="shadow-sm bg-neutral-50">
+          <CardContent className="p-8 text-center">
+            <div className="max-w-md mx-auto">
             {isGeneratingCompetitors ? (
               // Loading State
               <div className="py-8">
@@ -949,12 +961,12 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
                   Competitor information including nearby properties, ratings, and reviews will appear here once collected.
                 </p>
                 {generationSuccess && (
-                  <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="mb-4 p-3 bg-green-50 rounded-lg shadow-sm">
                     <p className="text-sm text-green-700">{generationSuccess}</p>
                   </div>
                 )}
                 {generationError && (
-                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="mb-4 p-3 bg-red-50 rounded-lg shadow-sm">
                     <p className="text-sm text-red-700">{generationError}</p>
                   </div>
                 )}
@@ -968,8 +980,9 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
                 </button>
               </>
             )}
-          </div>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       ) : (
         <>
 
@@ -992,7 +1005,8 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
           <p className="text-sm text-neutral-600 mb-4">
             Save competitors you want to track
           </p>
-          <div className="rounded-lg border border-neutral-200 shadow-sm bg-neutral-50 p-8 text-center">
+          <Card className="shadow-sm bg-neutral-50">
+            <CardContent className="p-8 text-center">
             <div className="max-w-md mx-auto">
               <svg
                 className="w-12 h-12 text-neutral-400 mx-auto mb-4"
@@ -1014,7 +1028,8 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
                 Click the star icon next to any competitor below to add them to your watchlist for easy tracking.
               </p>
             </div>
-          </div>
+          </CardContent>
+        </Card>
         </div>
       )}
 
@@ -1041,6 +1056,7 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
       )}
         </>
       )}
-    </div>
+      </CardContent>
+    </Card>
   );
 }

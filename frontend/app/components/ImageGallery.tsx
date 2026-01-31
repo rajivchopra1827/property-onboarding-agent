@@ -668,7 +668,7 @@ export default function ImageGallery({ images, initialIndex = 0, onClose, onImag
           <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
             {/* Error Message */}
             {error && (
-              <div className="bg-error-light border border-error-dark text-error-dark px-4 py-3 rounded-lg">
+              <div className="bg-error-light text-error-dark px-4 py-3 rounded-lg shadow-sm">
                 <div className="flex items-center gap-2">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

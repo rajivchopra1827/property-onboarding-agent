@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Alert, AlertDescription } from '@/app/components/ui/alert';
+import { Button } from '@/app/components/ui/button';
+import { CheckCircle2, XCircle } from 'lucide-react';
 
 interface StatusMessageProps {
   type: 'success' | 'error';
@@ -44,27 +47,27 @@ export default function StatusMessage({
   }
 
   const isSuccess = type === 'success';
-  const bgColor = isSuccess ? 'bg-success-light' : 'bg-error-light';
-  const borderColor = isSuccess ? 'border-success' : 'border-error';
-  const textColor = isSuccess ? 'text-success-dark' : 'text-error-dark';
+  const Icon = isSuccess ? CheckCircle2 : XCircle;
 
   return (
-    <div className={`mt-4 p-3 ${bgColor} border ${borderColor} rounded-lg`}>
-      <div className="flex items-start justify-between gap-3">
-        <p className={`text-sm ${textColor} flex-1`}>
-          {isSuccess && '✓ '}
-          {!isSuccess && '✗ '}
-          {message}
-        </p>
+    <Alert 
+      variant={isSuccess ? 'default' : 'destructive'}
+      className={`mt-4 ${isSuccess ? 'bg-success-light text-success-dark' : ''}`}
+    >
+      <Icon className="size-4" />
+      <AlertDescription className="flex items-center justify-between gap-3">
+        <span className="flex-1">{message}</span>
         {!isSuccess && onRetry && (
-          <button
+          <Button
             onClick={onRetry}
-            className="px-3 py-1 text-sm font-semibold text-error-dark border border-error-dark rounded hover:bg-error/20 transition-colors focus:outline-none focus:ring-2 focus:ring-error focus:ring-offset-1"
+            variant="outline"
+            size="sm"
+            className="text-error-dark hover:bg-error/20 shadow-sm"
           >
             Retry
-          </button>
+          </Button>
         )}
-      </div>
-    </div>
+      </AlertDescription>
+    </Alert>
   );
 }
