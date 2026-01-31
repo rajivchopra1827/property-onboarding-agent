@@ -1,0 +1,610 @@
+@import "tailwindcss";
+
+:root {
+  /* Primary Colors (Pink) */
+  --primary-50: #FFF0F7;
+  --primary-100: #FFE0F0;
+  --primary-200: #FFC7E3;
+  --primary-300: #FFA0D2;
+  --primary-400: #FF69B8;
+  --primary-500: #FF1B8D; /* Main brand pink */
+  --primary-600: #E6007A;
+  --primary-700: #C20068;
+  --primary-800: #9E0056;
+  --primary-900: #7A0043;
+
+  /* Secondary Colors (Purple) */
+  --secondary-50: #F3E5F5;
+  --secondary-100: #E1BEE7;
+  --secondary-200: #CE93D8;
+  --secondary-300: #BA68C8;
+  --secondary-400: #9C27B0;
+  --secondary-500: #7B1FA2;
+  --secondary-600: #6A1B9A;
+  --secondary-700: #4A148C; /* Deep purple from original */
+  --secondary-800: #38006B;
+  --secondary-900: #260049;
+
+  /* Neutral Colors */
+  --neutral-50: #FAFAFA;
+  --neutral-100: #F5F5F5;
+  --neutral-200: #EEEEEE;
+  --neutral-300: #E0E0E0;
+  --neutral-400: #BDBDBD;
+  --neutral-500: #9E9E9E;
+  --neutral-600: #757575;
+  --neutral-700: #616161;
+  --neutral-800: #424242;
+  --neutral-900: #212121;
+
+  /* Semantic Colors */
+  --success: #00C853;
+  --success-light: #B9F6CA;
+  --success-dark: #00A043;
+  --warning: #FFB300;
+  --warning-light: #FFE57F;
+  --warning-dark: #FF8F00;
+  --error: #E53935;
+  --error-light: #FFCDD2;
+  --error-dark: #C62828;
+  --info: #00B0FF;
+  --info-light: #B3E5FC;
+  --info-dark: #0091EA;
+
+  /* Background */
+  --background: #ffffff;
+  --foreground: #212121;
+}
+
+@theme inline {
+  /* Colors */
+  --color-primary-50: var(--primary-50);
+  --color-primary-100: var(--primary-100);
+  --color-primary-200: var(--primary-200);
+  --color-primary-300: var(--primary-300);
+  --color-primary-400: var(--primary-400);
+  --color-primary-500: var(--primary-500);
+  --color-primary-600: var(--primary-600);
+  --color-primary-700: var(--primary-700);
+  --color-primary-800: var(--primary-800);
+  --color-primary-900: var(--primary-900);
+
+  --color-secondary-50: var(--secondary-50);
+  --color-secondary-100: var(--secondary-100);
+  --color-secondary-200: var(--secondary-200);
+  --color-secondary-300: var(--secondary-300);
+  --color-secondary-400: var(--secondary-400);
+  --color-secondary-500: var(--secondary-500);
+  --color-secondary-600: var(--secondary-600);
+  --color-secondary-700: var(--secondary-700);
+  --color-secondary-800: var(--secondary-800);
+  --color-secondary-900: var(--secondary-900);
+
+  --color-neutral-50: var(--neutral-50);
+  --color-neutral-100: var(--neutral-100);
+  --color-neutral-200: var(--neutral-200);
+  --color-neutral-300: var(--neutral-300);
+  --color-neutral-400: var(--neutral-400);
+  --color-neutral-500: var(--neutral-500);
+  --color-neutral-600: var(--neutral-600);
+  --color-neutral-700: var(--neutral-700);
+  --color-neutral-800: var(--neutral-800);
+  --color-neutral-900: var(--neutral-900);
+
+  --color-success: var(--success);
+  --color-success-light: var(--success-light);
+  --color-success-dark: var(--success-dark);
+  --color-warning: var(--warning);
+  --color-warning-light: var(--warning-light);
+  --color-warning-dark: var(--warning-dark);
+  --color-error: var(--error);
+  --color-error-light: var(--error-light);
+  --color-error-dark: var(--error-dark);
+  --color-info: var(--info);
+  --color-info-light: var(--info-light);
+  --color-info-dark: var(--info-dark);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  /* Fonts */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Spacing */
+  --spacing-1: 0.25rem; /* 4px */
+  --spacing-2: 0.5rem; /* 8px */
+  --spacing-3: 0.75rem; /* 12px */
+  --spacing-4: 1rem; /* 16px */
+  --spacing-5: 1.5rem; /* 24px */
+  --spacing-6: 2rem; /* 32px */
+  --spacing-7: 3rem; /* 48px */
+  --spacing-8: 4rem; /* 64px */
+  --spacing-9: 6rem; /* 96px */
+  --spacing-10: 8rem; /* 128px */
+
+  /* Border Radius */
+  --radius-sm: 0.5rem; /* 8px */
+  --radius-md: 0.75rem; /* 12px */
+  --radius-lg: 1rem; /* 16px */
+  --radius-xl: 1.25rem; /* 20px */
+  --radius-2xl: 1.5rem; /* 24px */
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.12);
+  --shadow-2xl: 0 32px 64px rgba(0, 0, 0, 0.15);
+  --shadow-primary: 0 8px 24px rgba(255, 27, 141, 0.25);
+  --shadow-primary-lg: 0 20px 40px rgba(255, 27, 141, 0.3);
+  --shadow-secondary: 0 8px 24px rgba(74, 20, 140, 0.25);
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #FF1B8D 0%, #7B1FA2 100%);
+  --gradient-secondary: linear-gradient(135deg, #4A148C 0%, #7B1FA2 100%);
+  --gradient-hero: linear-gradient(135deg, #4A148C 0%, #7B1FA2 50%, #9C27B0 100%);
+  --gradient-subtle: linear-gradient(180deg, #FFFFFF 0%, #FFF0F7 100%);
+  --gradient-text: linear-gradient(135deg, #7B1FA2 0%, #FF1B8D 100%);
+}
+
+/* Dark mode disabled - using light theme only */
+
+body {
+  background: var(--neutral-50);
+  color: var(--neutral-900);
+  font-family: var(--font-sans);
+}
+
+/* Utility Classes */
+.text-gradient {
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-primary {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.bg-gradient-hero {
+  background: var(--gradient-hero);
+}
+
+.bg-gradient-primary {
+  background: var(--gradient-primary);
+}
+
+.bg-gradient-secondary {
+  background: var(--gradient-secondary);
+}
+
+.bg-gradient-subtle {
+  background: var(--gradient-subtle);
+}
+
+/* Focus States */
+*:focus-visible {
+  outline: 3px solid var(--primary-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Loading State Animations */
+
+/* Morphing Shape Animation - cycles through social media icon shapes */
+@keyframes morphShape {
+  0% {
+    border-radius: 50%;
+    transform: scale(1) rotate(0deg);
+  }
+  16.66% {
+    border-radius: 20%;
+    transform: scale(1.1) rotate(90deg);
+  }
+  33.33% {
+    border-radius: 0%;
+    transform: scale(1) rotate(180deg);
+  }
+  50% {
+    border-radius: 20%;
+    transform: scale(1.1) rotate(270deg);
+  }
+  66.66% {
+    border-radius: 0%;
+    transform: scale(1) rotate(360deg);
+  }
+  83.33% {
+    border-radius: 20%;
+    transform: scale(1.1) rotate(450deg);
+  }
+  100% {
+    border-radius: 50%;
+    transform: scale(1) rotate(540deg);
+  }
+}
+
+/* Progress Ring Animation */
+@keyframes progressRing {
+  from {
+    stroke-dashoffset: 283;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Particle Sparkle Animation */
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0) translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) translateY(-20px);
+  }
+}
+
+/* Floating Particles */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 0.7;
+  }
+  25% {
+    transform: translateY(-10px) translateX(5px) rotate(90deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-20px) translateX(-5px) rotate(180deg);
+    opacity: 0.8;
+  }
+  75% {
+    transform: translateY(-10px) translateX(5px) rotate(270deg);
+    opacity: 1;
+  }
+}
+
+/* Gradient Shift Animation */
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Theme Icon Fade In/Out */
+@keyframes themeIconFade {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  20%, 80% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Step Text Fade Transition */
+@keyframes stepFade {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  20%, 80% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* Pulse Glow Effect */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 27, 141, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 27, 141, 0.6), 0 0 60px rgba(123, 31, 162, 0.3);
+  }
+}
+
+/* Utility Classes for Animations */
+.animate-morph-shape {
+  animation: morphShape 4s ease-in-out infinite;
+}
+
+.animate-progress-ring {
+  animation: progressRing 2s ease-out forwards;
+}
+
+.animate-sparkle {
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+}
+
+.animate-theme-icon {
+  animation: themeIconFade 3s ease-in-out infinite;
+}
+
+.animate-step-fade {
+  animation: stepFade 4s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Network Node Pulse Animation */
+@keyframes networkPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+}
+
+/* Node Glow Effect */
+@keyframes nodeGlow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(255, 27, 141, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(255, 27, 141, 0.8), 0 0 24px rgba(123, 31, 162, 0.4);
+  }
+}
+
+/* Connection Flow Animation */
+@keyframes connectionFlow {
+  0% {
+    stroke-dashoffset: 0;
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    stroke-dashoffset: -16;
+    opacity: 0.3;
+  }
+}
+
+/* Floating Page Animation */
+@keyframes floatingPage {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+    opacity: 0.6;
+  }
+  25% {
+    transform: translateY(-15px) translateX(8px);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translateY(-25px) translateX(-8px);
+    opacity: 0.7;
+  }
+  75% {
+    transform: translateY(-15px) translateX(8px);
+    opacity: 0.9;
+  }
+}
+
+/* Page Rotation Animation */
+@keyframes pageRotate {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(10deg);
+  }
+  50% {
+    transform: rotate(-10deg);
+  }
+  75% {
+    transform: rotate(10deg);
+  }
+}
+
+/* Utility Classes for New Animations */
+.animate-network-pulse {
+  animation: networkPulse 2s ease-in-out infinite;
+}
+
+.animate-node-glow {
+  animation: nodeGlow 2s ease-in-out infinite;
+}
+
+.animate-connection-flow {
+  animation: connectionFlow 2s linear infinite;
+}
+
+.animate-floating-page {
+  animation: floatingPage 4s ease-in-out infinite;
+}
+
+.animate-page-rotate {
+  animation: pageRotate 3s ease-in-out infinite;
+}
+
+/* Combined animation for floating pages with rotation */
+.animate-floating-page-rotate {
+  animation: floatingPage 4s ease-in-out infinite, pageRotate 3s ease-in-out infinite;
+}
+
+/* Horizontal Flow Animation - Icons pulse/glow in sequence */
+@keyframes horizontalFlow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+/* Icon Pulse Animation */
+@keyframes iconPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.15);
+  }
+}
+
+/* Progress Fill Animation */
+@keyframes progressFill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: var(--progress-width, 0%);
+  }
+}
+
+/* Icon Slide Animation - Subtle horizontal slide for active icons */
+@keyframes iconSlide {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(2px);
+  }
+}
+
+/* Utility Classes for New Horizontal Animations */
+.animate-horizontal-flow {
+  animation: horizontalFlow 2s ease-in-out infinite;
+}
+
+.animate-icon-pulse {
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+.animate-progress-fill {
+  animation: progressFill 1s ease-out forwards;
+}
+
+.animate-icon-slide {
+  animation: iconSlide 2s ease-in-out infinite;
+}
+
+/* Comparison Dashboard Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes highlightPulse {
+  0%, 100% {
+    background-color: var(--success-light);
+  }
+  50% {
+    background-color: rgba(185, 246, 202, 0.7);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 200ms ease-out;
+}
+
+.animate-slideUp {
+  animation: slideUp 300ms ease-out;
+}
+
+.animate-highlight-pulse {
+  animation: highlightPulse 2s ease-in-out infinite;
+}
+
+/* Comparison-specific utility classes */
+.comparison-cell {
+  @apply border-r border-neutral-200 px-4 py-3 text-center transition-colors duration-200;
+}
+
+.comparison-cell:last-child {
+  @apply border-r-0;
+}
+
+.comparison-cell:hover {
+  @apply bg-neutral-50;
+}
+
+.highlight-best {
+  @apply bg-success-light text-success-dark font-semibold;
+}
+
+.highlight-worst {
+  @apply bg-error-light text-error-dark;
+}
+
+.highlight-unique {
+  @apply bg-primary-100 text-primary-600;
+}
+
+.highlight-neutral {
+  @apply bg-white text-neutral-900;
+}
+
+/* Reduce Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

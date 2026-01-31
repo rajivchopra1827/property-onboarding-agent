@@ -1,0 +1,172 @@
+'use client';
+
+import { PropertyWithAllData } from '@/lib/types';
+import { formatRating, getStarDisplay, formatNumber, getCellHighlight } from '../utils/comparisonHelpers';
+
+interface ReviewsComparisonProps {
+  properties: PropertyWithAllData[];
+}
+
+function getDisplayName(property: PropertyWithAllData['property']) {
+  if (property.property_name) {
+    return property.property_name;
+  }
+  if (property.website_url) {
+    try {
+      const url = new URL(property.website_url);
+      return url.hostname.replace('www.', '');
+    } catch {
+      return property.website_url;
+    }
+  }
+  return 'Unnamed Property';
+}
+
+export default function ReviewsComparison({ properties }: ReviewsComparisonProps) {
+  const reviewsSummaries = properties.map(p => p.reviewsSummary);
+  const ratings = reviewsSummaries.map(r => r?.overall_rating || null);
+  const reviewCounts = reviewsSummaries.map(r => r?.review_count || null);
+
+  // Check if any property has reviews
+  const hasReviews = properties.some(p => p.reviewsSummary !== null);
+
+  if (!hasReviews) {
+    return (
+      <div className="bg-white rounded-lg border border-neutral-200 p-6">
+        <h2 className="text-xl font-semibold mb-4">Reviews</h2>
+        <p className="text-neutral-600">No reviews data available for comparison</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-lg border border-neutral-200 overflow-x-auto">
+      <div className="px-6 py-4 border-b border-neutral-200">
+        <h2 className="text-xl font-semibold text-neutral-900">Reviews</h2>
+      </div>
+      <table className="w-full">
+        <thead>
+          <tr>
+            <th className="text-left px-4 py-3 text-sm font-semibold text-neutral-700 border-b border-neutral-200 bg-neutral-50">
+              Metric
+            </th>
+            {properties.map((propData) => (
+              <th
+                key={propData.property.id}
+                className="text-center px-4 py-3 text-sm font-semibold text-neutral-700 border-b border-neutral-200 bg-neutral-50 min-w-[200px] max-w-[280px]"
+              >
+                {getDisplayName(propData.property)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {/* Rating Row */}
+          <tr className="border-b border-neutral-200">
+            <td className="px-4 py-3 text-sm font-medium text-neutral-700 bg-white">
+              Overall Rating
+            </td>
+            {properties.map((propData, index) => {
+              const rating = propData.reviewsSummary?.overall_rating || null;
+              const highlight = getCellHighlight(rating, ratings, true);
+              const isBest = highlight === 'best';
+
+              return (
+                <td
+                  key={propData.property.id}
+                  className={`
+                    px-4 py-3 text-sm text-center
+                    ${isBest ? 'bg-success-light text-success-dark font-semibold' : 'bg-white text-neutral-900'}
+                    transition-colors duration-200
+                  `}
+                >
+                  <div className="flex flex-col items-center gap-1">
+                    {rating !== null ? (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-bold">{formatRating(rating)}</span>
+                          {isBest && (
+                            <span className="text-lg" title="Best rating">👑</span>
+                          )}
+                        </div>
+                        <span className="text-yellow-500 text-sm">{getStarDisplay(rating)}</span>
+                      </>
+                    ) : (
+                      <span className="text-neutral-500">—</span>
+                    )}
+                  </div>
+                </td>
+              );
+            })}
+          </tr>
+
+          {/* Review Count Row */}
+          <tr className="border-b border-neutral-200">
+            <td className="px-4 py-3 text-sm font-medium text-neutral-700 bg-white">
+              Review Count
+            </td>
+            {properties.map((propData) => {
+              const count = propData.reviewsSummary?.review_count || null;
+              const highlight = getCellHighlight(count, reviewCounts, true);
+              const isBest = highlight === 'best';
+
+              return (
+                <td
+                  key={propData.property.id}
+                  className={`
+                    px-4 py-3 text-sm text-center
+                    ${isBest ? 'bg-success-light text-success-dark font-semibold' : 'bg-white text-neutral-900'}
+                    transition-colors duration-200
+                  `}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    {formatNumber(count)}
+                    {isBest && (
+                      <span className="text-lg" title="Most reviews">👑</span>
+                    )}
+                  </div>
+                </td>
+              );
+            })}
+          </tr>
+
+          {/* Sentiment Summary Row */}
+          <tr>
+            <td className="px-4 py-3 text-sm font-medium text-neutral-700 bg-white align-top">
+              Sentiment Summary
+            </td>
+            {properties.map((propData) => {
+              const sentiment = propData.reviewsSummary?.sentiment_summary || null;
+              const googleMapsUrl = propData.reviewsSummary?.google_maps_url || null;
+
+              return (
+                <td
+                  key={propData.property.id}
+                  className="px-4 py-3 text-sm bg-white align-top"
+                >
+                  {sentiment ? (
+                    <div className="space-y-2">
+                      <p className="text-neutral-700 leading-relaxed">{sentiment}</p>
+                      {googleMapsUrl && (
+                        <a
+                          href={googleMapsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary-500 hover:text-primary-600 text-xs underline"
+                        >
+                          View all reviews →
+                        </a>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-neutral-500">—</span>
+                  )}
+                </td>
+              );
+            })}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
