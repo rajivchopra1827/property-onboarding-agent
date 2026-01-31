@@ -48,10 +48,17 @@ class PropertyRepository:
             Property instance if found, None otherwise
         """
         try:
-            response = self.client.table("properties").select("*").eq("website_url", website_url).execute()
+            # Only select id first for faster query, then get full data if needed
+            # This optimizes the query and reduces data transfer
+            response = self.client.table("properties").select("id,website_url").eq("website_url", website_url).limit(1).execute()
             
             if response.data and len(response.data) > 0:
-                return Property.from_dict(response.data[0])
+                # If we found a match, get the full property data
+                property_id = response.data[0].get("id")
+                if property_id:
+                    full_response = self.client.table("properties").select("*").eq("id", property_id).single().execute()
+                    if full_response.data:
+                        return Property.from_dict(full_response.data)
             return None
         except Exception as e:
             print(f"Error getting property by website URL: {e}")
@@ -1217,5 +1224,89 @@ class PropertyRepository:
             return []
         except Exception as e:
             print(f"Error getting social posts by property ID: {e}")
+            return []
+    
+    def get_normalization_mapping(self, raw_name: str, category: str) -> Optional[Dict[str, Any]]:
+        """
+        Get normalization mapping for a raw amenity name.
+        
+        Args:
+            raw_name: Raw amenity name
+            category: Category ('building' or 'apartment')
+            
+        Returns:
+            Mapping dictionary with normalized_name, confidence_score, source, or None if not found
+        """
+        try:
+            response = self.client.table("amenity_normalizations").select("*").eq("raw_name", raw_name).eq("category", category).limit(1).execute()
+            
+            if response.data and len(response.data) > 0:
+                return response.data[0]
+            return None
+        except Exception as e:
+            print(f"Error getting normalization mapping: {e}")
+            return None
+    
+    def create_normalization_mapping(
+        self,
+        raw_name: str,
+        normalized_name: str,
+        category: str,
+        confidence_score: Optional[float] = None,
+        source: str = 'ai'
+    ) -> Optional[str]:
+        """
+        Create a normalization mapping.
+        
+        Args:
+            raw_name: Raw amenity name
+            normalized_name: Normalized canonical name
+            category: Category ('building' or 'apartment')
+            confidence_score: Confidence score (0.00 to 1.00)
+            source: Source of normalization ('ai', 'manual', 'taxonomy')
+            
+        Returns:
+            ID of the mapping record, or None if creation failed
+        """
+        try:
+            mapping_record = {
+                "raw_name": raw_name,
+                "normalized_name": normalized_name,
+                "category": category,
+                "source": source
+            }
+            if confidence_score is not None:
+                mapping_record["confidence_score"] = confidence_score
+            
+            # Use upsert to handle existing mappings
+            response = self.client.table("amenity_normalizations").upsert(
+                mapping_record,
+                on_conflict="raw_name,category"
+            ).execute()
+            
+            if response.data and len(response.data) > 0:
+                return response.data[0].get("id")
+            return None
+        except Exception as e:
+            print(f"Error creating normalization mapping: {e}")
+            return None
+    
+    def get_normalizations_by_normalized_name(self, normalized_name: str, category: str) -> List[Dict[str, Any]]:
+        """
+        Get all raw names that map to a normalized name.
+        
+        Args:
+            normalized_name: Normalized canonical name
+            category: Category ('building' or 'apartment')
+            
+        Returns:
+            List of mapping dictionaries
+        """
+        try:
+            response = self.client.table("amenity_normalizations").select("*").eq("normalized_name", normalized_name).eq("category", category).execute()
+            
+            return response.data or []
+        except Exception as e:
+            print(f"Error getting normalizations by normalized name: {e}")
             return []
 
