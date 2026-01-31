@@ -192,17 +192,17 @@ export default function QuickMetricsTable({ properties }: QuickMetricsTableProps
   ];
 
   return (
-    <div className="bg-neutral-100 rounded-lg border border-neutral-200 overflow-x-auto">
+    <div className="bg-muted rounded-lg border border-border overflow-x-auto">
       <table className="w-full">
         <thead>
           <tr>
-            <th className="text-left px-4 py-3 text-sm font-semibold text-neutral-700 border-b border-neutral-200" scope="col">
+            <th className="text-left px-4 py-3 text-sm font-semibold text-foreground border-b border-border" scope="col">
               Metric
             </th>
             {metrics.map((metric) => (
               <th
                 key={metric.propertyId}
-                className="text-center px-4 py-3 text-sm font-semibold text-neutral-700 border-b border-neutral-200 min-w-[200px] max-w-[280px]"
+                className="text-center px-4 py-3 text-sm font-semibold text-foreground border-b border-border min-w-[200px] max-w-[280px]"
                 scope="col"
               >
                 {metric.propertyName}
@@ -212,8 +212,8 @@ export default function QuickMetricsTable({ properties }: QuickMetricsTableProps
         </thead>
         <tbody>
           {rows.map((row, rowIndex) => (
-            <tr key={rowIndex} className="border-b border-neutral-200 last:border-b-0">
-              <th className="px-4 py-3 text-sm font-medium text-neutral-700 bg-white text-left" scope="row">
+            <tr key={rowIndex} className="border-b border-border last:border-b-0">
+              <th className="px-4 py-3 text-sm font-medium text-foreground bg-card text-left" scope="row">
                 {row.label}
               </th>
               {row.values.map((value, colIndex) => {
@@ -225,7 +225,7 @@ export default function QuickMetricsTable({ properties }: QuickMetricsTableProps
                     key={colIndex}
                     className={`
                       px-4 py-3 text-sm text-center
-                      ${isBest ? 'bg-success-light text-success-dark font-semibold' : 'bg-white text-neutral-900'}
+                      ${isBest ? 'bg-success-light dark:bg-success/20 text-success-dark dark:text-success font-semibold' : 'bg-card text-foreground'}
                       transition-colors duration-200
                     `}
                   >

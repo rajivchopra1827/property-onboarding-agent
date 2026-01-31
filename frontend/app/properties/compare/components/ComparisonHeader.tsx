@@ -38,7 +38,7 @@ export default function ComparisonHeader({ properties }: ComparisonHeaderProps) 
   if (properties.length === 0) return null;
 
   return (
-    <div className="sticky top-0 z-20 bg-white shadow-md border-b border-neutral-200">
+    <div className="sticky top-0 z-20 bg-background shadow-md border-b border-border">
       <div className="container mx-auto px-6 py-4">
         <div 
           className="grid gap-4"
@@ -58,14 +58,14 @@ export default function ComparisonHeader({ properties }: ComparisonHeaderProps) 
                 aria-label={`Property: ${displayName}`}
               >
                 {/* Property Logo/Image placeholder - can be enhanced later */}
-                <div className="w-16 h-16 bg-neutral-100 rounded-lg mb-3 flex items-center justify-center">
+                <div className="w-16 h-16 bg-muted rounded-lg mb-3 flex items-center justify-center">
                   <span className="text-2xl font-bold text-primary-500">
                     {displayName.charAt(0).toUpperCase()}
                   </span>
                 </div>
 
                 {/* Property Name */}
-                <h3 className="text-lg font-semibold text-neutral-900 mb-2 line-clamp-2">
+                <h3 className="text-lg font-semibold text-foreground mb-2 line-clamp-2">
                   {displayName}
                 </h3>
 
@@ -73,7 +73,7 @@ export default function ComparisonHeader({ properties }: ComparisonHeaderProps) 
                 <div className="flex items-center gap-2">
                   {rating !== null ? (
                     <>
-                      <span className="text-xl font-bold text-neutral-900">
+                      <span className="text-xl font-bold text-foreground">
                         {rating.toFixed(1)}
                       </span>
                       <span className="text-lg text-yellow-500">
@@ -81,7 +81,7 @@ export default function ComparisonHeader({ properties }: ComparisonHeaderProps) 
                       </span>
                     </>
                   ) : (
-                    <span className="text-sm text-neutral-500">No rating</span>
+                    <span className="text-sm text-muted-foreground">No rating</span>
                   )}
                 </div>
               </div>

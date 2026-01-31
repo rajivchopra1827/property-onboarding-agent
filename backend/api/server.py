@@ -65,6 +65,40 @@ class MissingExtractionsResponse(BaseModel):
     all_complete: bool
 
 
+class GenerateVideoRequest(BaseModel):
+    """Request model for generating a video reel."""
+    image_url: Optional[str] = None
+    image_id: Optional[str] = None
+    theme: Optional[str] = "lifestyle"
+    caption: Optional[str] = None
+
+
+class GenerateVideoResponse(BaseModel):
+    """Response model for video generation."""
+    success: bool
+    video_url: Optional[str] = None
+    error: Optional[str] = None
+    fallback_used: bool = False
+    generation_time_seconds: Optional[float] = None
+    estimated_cost: Optional[float] = None
+
+
+class GenerateSocialPostsRequest(BaseModel):
+    """Request model for generating social posts."""
+    post_count: Optional[int] = 8
+    themes: Optional[list] = None
+    generate_videos: Optional[bool] = False
+
+
+class GenerateSocialPostsResponse(BaseModel):
+    """Response model for social posts generation."""
+    success: bool
+    posts: list
+    count: int
+    property_id: str
+    error: Optional[str] = None
+
+
 async def run_workflow_async(
     workflow,
     session_id: str,
@@ -292,6 +326,129 @@ async def force_reonboard_property(
         status="started",
         message="Force re-onboarding started"
     )
+
+
+@app.post("/api/properties/{property_id}/generate-video", response_model=GenerateVideoResponse)
+async def generate_video_reel(
+    property_id: str,
+    request: GenerateVideoRequest
+):
+    """
+    Generate a video reel from a property image.
+
+    Uses Google Gemini Veo 2.0 to create a 5-second cinematic video.
+    Falls back to error response if video generation fails.
+    """
+    property_repo = PropertyRepository()
+    property_obj = property_repo.get_property_by_id(property_id)
+
+    if not property_obj:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Property {property_id} not found"
+        )
+
+    try:
+        # Import video generation tool
+        from agno_tools.generate_video_reel_tool import generate_video_reel as gen_video
+
+        result = await asyncio.to_thread(
+            gen_video,
+            property_id=property_id,
+            post_theme=request.theme or "lifestyle",
+            image_id=request.image_id,
+            image_url=request.image_url,
+            caption=request.caption,
+            save_to_db=False
+        )
+
+        if result.get("success"):
+            return GenerateVideoResponse(
+                success=True,
+                video_url=result.get("video_url"),
+                fallback_used=False,
+                generation_time_seconds=result.get("generation_time_seconds"),
+                estimated_cost=result.get("estimated_cost")
+            )
+        else:
+            return GenerateVideoResponse(
+                success=False,
+                error=result.get("error"),
+                fallback_used=True
+            )
+
+    except ImportError as e:
+        return GenerateVideoResponse(
+            success=False,
+            error=f"Video generation module not available: {str(e)}",
+            fallback_used=True
+        )
+    except Exception as e:
+        return GenerateVideoResponse(
+            success=False,
+            error=f"Video generation failed: {str(e)}",
+            fallback_used=True
+        )
+
+
+@app.post("/api/properties/{property_id}/generate-social-posts", response_model=GenerateSocialPostsResponse)
+async def generate_social_posts(
+    property_id: str,
+    request: GenerateSocialPostsRequest
+):
+    """
+    Generate social media posts for a property.
+
+    Creates Instagram posts with AI-generated captions, hashtags, CTAs, and mockups.
+    Optionally generates video reels for each post.
+    """
+    property_repo = PropertyRepository()
+    property_obj = property_repo.get_property_by_id(property_id)
+
+    if not property_obj:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Property {property_id} not found"
+        )
+
+    try:
+        # Import social posts generation tool
+        from tools.generate_social_posts import execute
+
+        result = await asyncio.to_thread(
+            execute,
+            {
+                "property_id": property_id,
+                "post_count": request.post_count or 8,
+                "themes": request.themes,
+                "generate_videos": request.generate_videos or False
+            }
+        )
+
+        if result.get("error"):
+            return GenerateSocialPostsResponse(
+                success=False,
+                posts=[],
+                count=0,
+                property_id=property_id,
+                error=result.get("error")
+            )
+
+        return GenerateSocialPostsResponse(
+            success=True,
+            posts=result.get("posts", []),
+            count=result.get("count", 0),
+            property_id=property_id
+        )
+
+    except Exception as e:
+        return GenerateSocialPostsResponse(
+            success=False,
+            posts=[],
+            count=0,
+            property_id=property_id,
+            error=f"Social posts generation failed: {str(e)}"
+        )
 
 
 @app.get("/health")

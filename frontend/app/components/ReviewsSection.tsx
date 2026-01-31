@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Fragment } from 'react';
+import { useEffect, useState, Fragment, useCallback } from 'react';
 import { MessageSquare } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { PropertyReview, PropertyReviewsSummary } from '@/lib/types';
@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/ca
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
+import EmptyState from './EmptyState';
 
 interface ReviewsSectionProps {
   propertyId: string;
@@ -22,73 +23,11 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
   const [loading, setLoading] = useState(true);
   const [sentimentLoading, setSentimentLoading] = useState(false);
   const [expandedReviews, setExpandedReviews] = useState<Set<string>>(new Set());
+  const [isCollectingReviews, setIsCollectingReviews] = useState(false);
+  const [collectionError, setCollectionError] = useState<string | null>(null);
+  const [collectionSuccess, setCollectionSuccess] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchReviews() {
-      try {
-        setLoading(true);
-
-        // Fetch reviews summary
-        const { data: summaryData, error: summaryError } = await supabase
-          .from('property_reviews_summary')
-          .select('*')
-          .eq('property_id', propertyId)
-          .single();
-
-        if (summaryError && summaryError.code !== 'PGRST116') {
-          // PGRST116 is "not found" error, which is okay
-          console.error('Error fetching reviews summary:', summaryError);
-        } else {
-          setReviewsSummary(summaryData);
-        }
-
-        // Fetch all positive reviews (4-5 stars)
-        const { data: positiveData, error: positiveError } = await supabase
-          .from('property_reviews')
-          .select('*')
-          .eq('property_id', propertyId)
-          .in('stars', [4, 5])
-          .order('published_at', { ascending: false });
-
-        if (positiveError) {
-          console.error('Error fetching positive reviews:', positiveError);
-          setAllPositiveReviews([]);
-        } else {
-          setAllPositiveReviews(positiveData || []);
-        }
-
-        // Fetch all negative reviews (1-3 stars)
-        const { data: negativeData, error: negativeError } = await supabase
-          .from('property_reviews')
-          .select('*')
-          .eq('property_id', propertyId)
-          .in('stars', [1, 2, 3])
-          .order('published_at', { ascending: false });
-
-        if (negativeError) {
-          console.error('Error fetching negative reviews:', negativeError);
-          setAllNegativeReviews([]);
-        } else {
-          setAllNegativeReviews(negativeData || []);
-        }
-
-        // Generate sentiment summary if it doesn't exist
-        if (summaryData && !summaryData.sentiment_summary && (positiveData?.length || negativeData?.length)) {
-          generateSentimentSummary();
-        }
-      } catch (err) {
-        console.error('Error fetching reviews:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (propertyId) {
-      fetchReviews();
-    }
-  }, [propertyId]);
-
-  const generateSentimentSummary = async () => {
+  const generateSentimentSummary = useCallback(async () => {
     try {
       setSentimentLoading(true);
       const response = await fetch(`/api/properties/${propertyId}/reviews/sentiment`, {
@@ -109,6 +48,114 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
       console.error('Error generating sentiment summary:', error);
     } finally {
       setSentimentLoading(false);
+    }
+  }, [propertyId]);
+
+  const fetchReviews = useCallback(async (showLoading: boolean = true) => {
+    try {
+      if (showLoading) {
+        setLoading(true);
+      }
+
+      // Fetch reviews summary
+      const { data: summaryData, error: summaryError } = await supabase
+        .from('property_reviews_summary')
+        .select('*')
+        .eq('property_id', propertyId)
+        .single();
+
+      if (summaryError && summaryError.code !== 'PGRST116') {
+        // PGRST116 is "not found" error, which is okay
+        console.error('Error fetching reviews summary:', summaryError);
+      } else {
+        setReviewsSummary(summaryData);
+      }
+
+      // Fetch all positive reviews (4-5 stars)
+      const { data: positiveData, error: positiveError } = await supabase
+        .from('property_reviews')
+        .select('*')
+        .eq('property_id', propertyId)
+        .in('stars', [4, 5])
+        .order('published_at', { ascending: false });
+
+      if (positiveError) {
+        console.error('Error fetching positive reviews:', positiveError);
+        setAllPositiveReviews([]);
+      } else {
+        setAllPositiveReviews(positiveData || []);
+      }
+
+      // Fetch all negative reviews (1-3 stars)
+      const { data: negativeData, error: negativeError } = await supabase
+        .from('property_reviews')
+        .select('*')
+        .eq('property_id', propertyId)
+        .in('stars', [1, 2, 3])
+        .order('published_at', { ascending: false });
+
+      if (negativeError) {
+        console.error('Error fetching negative reviews:', negativeError);
+        setAllNegativeReviews([]);
+      } else {
+        setAllNegativeReviews(negativeData || []);
+      }
+
+      // Generate sentiment summary if it doesn't exist
+      if (summaryData && !summaryData.sentiment_summary && (positiveData?.length || negativeData?.length)) {
+        generateSentimentSummary();
+      }
+
+      // If reviews were collected, reset the collecting state
+      if (summaryData || positiveData?.length || negativeData?.length) {
+        setIsCollectingReviews(false);
+      }
+    } catch (err) {
+      console.error('Error fetching reviews:', err);
+    } finally {
+      if (showLoading) {
+        setLoading(false);
+      }
+    }
+  }, [propertyId, generateSentimentSummary]);
+
+  useEffect(() => {
+    if (propertyId) {
+      fetchReviews();
+    }
+  }, [propertyId, fetchReviews]);
+
+
+  const handleCollectReviews = async () => {
+    if (!propertyId || isCollectingReviews) return;
+    
+    try {
+      setIsCollectingReviews(true);
+      setCollectionError(null);
+      setCollectionSuccess(null);
+
+      const response = await fetch(`/api/properties/${propertyId}/extract/reviews`, {
+        method: 'POST',
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to collect reviews');
+      }
+
+      setCollectionSuccess('Reviews collection started! This may take a few minutes.');
+      
+      // Refresh reviews after a delay (without showing loading spinner)
+      setTimeout(() => {
+        fetchReviews(false);
+        setTimeout(() => setCollectionSuccess(null), 3000);
+      }, 2000);
+    } catch (error: any) {
+      console.error('Error collecting reviews:', error);
+      setCollectionError(error.message || 'Failed to collect reviews. Please try again.');
+      setIsCollectingReviews(false);
+      setTimeout(() => setCollectionError(null), 5000);
     }
   };
 
@@ -156,7 +203,7 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
             className={`w-5 h-5 ${
               star <= stars
                 ? 'text-yellow-400 fill-current'
-                : 'text-neutral-300'
+                : 'text-muted-foreground'
             }`}
             fill="currentColor"
             viewBox="0 0 20 20"
@@ -208,7 +255,7 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
                   </div>
                 )}
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-semibold text-neutral-900">
+                  <p className="font-semibold text-foreground">
                     {review.reviewer_name || 'Anonymous'}
                   </p>
                   {review.is_local_guide && (
@@ -222,7 +269,7 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
               <div className="flex items-center gap-2">
                 {renderStars(review.stars)}
                 {review.stars && (
-                  <span className="text-sm font-medium text-neutral-700">
+                  <span className="text-sm font-medium text-foreground">
                     {review.stars}/5
                   </span>
                 )}
@@ -242,7 +289,7 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
               {/* Review Text */}
               <div>
                 {reviewText ? (
-                  <p className="text-sm text-neutral-700 leading-relaxed whitespace-pre-wrap">
+                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
                     {displayText}
                   </p>
                 ) : (
@@ -276,15 +323,15 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
               
               {/* Owner Response - shown when expanded */}
               {isExpanded && review.response_from_owner_text && (
-                <div className="pt-3 border-t border-neutral-200 animate-in fade-in duration-200">
+                <div className="pt-3 border-t border-border animate-in fade-in duration-200">
                   <p className="text-xs font-semibold text-neutral-600 mb-2">
                     Response from owner
                   </p>
-                  <p className="text-sm text-neutral-700 italic leading-relaxed">
+                  <p className="text-sm text-foreground italic leading-relaxed">
                     {review.response_from_owner_text}
                   </p>
                   {review.response_from_owner_date && (
-                    <p className="text-xs text-neutral-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {formatDate(review.response_from_owner_date)}
                     </p>
                   )}
@@ -329,25 +376,33 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
       {!reviewsSummary &&
       allPositiveReviews.length === 0 &&
       allNegativeReviews.length === 0 ? (
-        <Card className="bg-neutral-50">
-          <CardContent className="p-8 text-center">
-            <div className="max-w-md mx-auto">
-              <MessageSquare className="w-12 h-12 text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
-              <p className="text-neutral-600 mb-2 font-medium">
-                No reviews collected yet
-              </p>
-              <p className="text-sm text-neutral-500">
-                Review information including ratings, sentiment summaries, and individual reviews will appear here once collected.
-              </p>
+        <>
+          <EmptyState
+            icon={MessageSquare}
+            title="No reviews collected yet"
+            description="Review information including ratings, sentiment summaries, and individual reviews will appear here once collected."
+            actionLabel="Collect Reviews"
+            onAction={handleCollectReviews}
+            disabled={isCollectingReviews}
+            actionIcon={<MessageSquare className="w-5 h-5" strokeWidth={2} />}
+          />
+          {collectionSuccess && (
+            <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg shadow-sm">
+              <p className="text-sm text-green-700 dark:text-green-300">{collectionSuccess}</p>
             </div>
-          </CardContent>
-        </Card>
+          )}
+          {collectionError && (
+            <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg shadow-sm">
+              <p className="text-sm text-red-700 dark:text-red-300">{collectionError}</p>
+            </div>
+          )}
+        </>
       ) : (
         <>
 
       {/* Overall Rating and Review Count */}
       {reviewsSummary && (
-        <div className="mb-8 pb-6 border-b border-neutral-200">
+        <div className="mb-8 pb-6 border-b border-border">
           <div className="flex items-center gap-6">
             {reviewsSummary.overall_rating && (
               <div className="flex items-baseline gap-2">
@@ -361,7 +416,7 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
                       className={`w-6 h-6 ${
                         star <= Math.round(reviewsSummary.overall_rating!)
                           ? 'text-yellow-400 fill-current'
-                          : 'text-neutral-300'
+                          : 'text-muted-foreground'
                       }`}
                       fill="currentColor"
                       viewBox="0 0 20 20"
@@ -374,7 +429,7 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
             )}
             {reviewsSummary.review_count && (
               <div>
-                <p className="text-lg font-semibold text-neutral-900">
+                <p className="text-lg font-semibold text-foreground">
                   {reviewsSummary.review_count}{' '}
                   {reviewsSummary.review_count === 1 ? 'review' : 'reviews'}
                 </p>
@@ -385,18 +440,18 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
       )}
 
       {/* Sentiment Summary */}
-      <div className="mb-8 pb-6 border-b border-neutral-200">
-        <h3 className="text-lg font-semibold text-neutral-900 mb-3">
+      <div className="mb-8 pb-6 border-b border-border">
+        <h3 className="text-lg font-semibold text-foreground mb-3">
           Review Summary
         </h3>
         {sentimentLoading ? (
           <div className="text-neutral-600 text-sm">Generating summary...</div>
         ) : reviewsSummary?.sentiment_summary ? (
-          <p className="text-base text-neutral-700 leading-relaxed">
+          <p className="text-base text-foreground leading-relaxed">
             {reviewsSummary.sentiment_summary}
           </p>
         ) : (
-          <p className="text-neutral-500 text-sm italic">
+          <p className="text-muted-foreground text-sm italic">
             No sentiment summary available.
           </p>
         )}
@@ -408,7 +463,7 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
         <div>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-lg font-semibold text-neutral-900">
+              <h3 className="text-lg font-semibold text-foreground">
                 Positive Reviews ({allPositiveReviews.length})
               </h3>
               <p className="text-sm text-neutral-600 mt-1">
@@ -441,7 +496,7 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
               </Table>
             </Card>
           ) : (
-            <p className="text-neutral-500 text-sm italic">
+            <p className="text-muted-foreground text-sm italic">
               No positive reviews to display.
             </p>
           )}
@@ -451,7 +506,7 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
         <div>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-lg font-semibold text-neutral-900">
+              <h3 className="text-lg font-semibold text-foreground">
                 Negative Reviews ({allNegativeReviews.length})
               </h3>
               <p className="text-sm text-neutral-600 mt-1">
@@ -484,7 +539,7 @@ export default function ReviewsSection({ propertyId }: ReviewsSectionProps) {
               </Table>
             </Card>
           ) : (
-            <p className="text-neutral-500 text-sm italic">
+            <p className="text-muted-foreground text-sm italic">
               No negative reviews to display.
             </p>
           )}

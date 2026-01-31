@@ -1,14 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Megaphone } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { Megaphone, Play, Download, AlertCircle, Video, Image as ImageIcon } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { PropertySocialPost } from '@/lib/types';
+import { PropertySocialPost, PropertyImage } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
+import EmptyState from './EmptyState';
+import ImageSelectionModal from './ImageSelectionModal';
 
 interface SocialPostsSectionProps {
   propertyId: string;
@@ -23,6 +25,135 @@ const themeDisplayNames: Record<string, string> = {
   location: 'Location',
 };
 
+// Video player component with autoplay on hover
+function VideoPlayer({
+  src,
+  poster,
+  className,
+  aspectRatio = 'square',
+  onError,
+}: {
+  src: string;
+  poster?: string;
+  className?: string;
+  aspectRatio?: 'square' | 'reel';
+  onError?: () => void;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isHovering, setIsHovering] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!videoRef.current) return;
+
+    if (isHovering && !hasError) {
+      videoRef.current.play().catch(() => {
+        // Autoplay failed, likely due to browser restrictions
+      });
+    } else {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+  }, [isHovering, hasError]);
+
+  const handleError = () => {
+    setHasError(true);
+    setIsLoading(false);
+    onError?.();
+  };
+
+  const handleLoadedData = () => {
+    setIsLoading(false);
+  };
+
+  if (hasError && poster) {
+    // Fallback to poster image if video fails to load
+    return (
+      <div className={`relative ${className}`}>
+        <img
+          src={poster}
+          alt="Post content"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+          <div className="text-white text-center">
+            <AlertCircle className="w-8 h-8 mx-auto mb-2" />
+            <p className="text-xs">Video unavailable</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const aspectClass = aspectRatio === 'reel' ? 'aspect-[9/16]' : 'aspect-square';
+
+  return (
+    <div
+      className={`relative ${aspectClass} ${className}`}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+    >
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-neutral-100">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+        </div>
+      )}
+      <video
+        ref={videoRef}
+        src={src}
+        poster={poster}
+        className="w-full h-full object-cover"
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        onError={handleError}
+        onLoadedData={handleLoadedData}
+      />
+      {!isHovering && !isLoading && !hasError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity">
+          <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+            <Play className="w-6 h-6 text-primary-500 ml-1" fill="currentColor" />
+          </div>
+        </div>
+      )}
+      {/* Video indicator badge */}
+      <Badge
+        variant="secondary"
+        className="absolute bottom-2 right-2 bg-black/70 text-white"
+      >
+        <Video className="w-3 h-3 mr-1" />
+        Reel
+      </Badge>
+    </div>
+  );
+}
+
+// Video generation status indicator
+function VideoGenerationStatus({ status }: { status: string | null }) {
+  if (!status || status === 'completed') return null;
+
+  const statusConfig: Record<string, { label: string; color: string; animate: boolean }> = {
+    pending: { label: 'Queued', color: 'bg-neutral-500', animate: false },
+    processing: { label: 'Generating...', color: 'bg-primary-500', animate: true },
+    failed: { label: 'Failed', color: 'bg-error', animate: false },
+  };
+
+  const config = statusConfig[status] || statusConfig.pending;
+
+  return (
+    <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+      <div className="text-center text-white">
+        <div className={`w-8 h-8 mx-auto mb-2 rounded-full ${config.color} ${config.animate ? 'animate-pulse' : ''} flex items-center justify-center`}>
+          <Video className="w-4 h-4" />
+        </div>
+        <p className="text-sm font-medium">{config.label}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function SocialPostsSection({ propertyId }: SocialPostsSectionProps) {
   const [posts, setPosts] = useState<PropertySocialPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +164,9 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
   const [selectedPost, setSelectedPost] = useState<PropertySocialPost | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [currentThemeIndex, setCurrentThemeIndex] = useState(0);
+  const [generateAsVideos, setGenerateAsVideos] = useState(false);
+  const [images, setImages] = useState<PropertyImage[]>([]);
+  const [imageSelectionModalOpen, setImageSelectionModalOpen] = useState(false);
 
   const fetchSocialPosts = async () => {
     try {
@@ -62,27 +196,105 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
   useEffect(() => {
     if (propertyId) {
       fetchSocialPosts();
+      fetchImages();
     }
   }, [propertyId]);
 
+  const fetchImages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('property_images')
+        .select('*')
+        .eq('property_id', propertyId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching images:', error);
+        setImages([]);
+      } else {
+        // Ensure is_hidden defaults to false
+        const imagesWithDefaults = (data || []).map((img: PropertyImage) => ({
+          ...img,
+          is_hidden: img.is_hidden ?? false,
+        }));
+        setImages(imagesWithDefaults);
+      }
+    } catch (err) {
+      console.error('Error fetching images:', err);
+      setImages([]);
+    }
+  };
+
+  const handleGenerateVideos = async (imageIds: string[], theme: string) => {
+    try {
+      setIsGenerating(true);
+      setErrorMessage(null);
+      setSuccessMessage(null);
+
+      const response = await fetch(`/api/properties/${propertyId}/social-posts/generate-videos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          image_ids: imageIds,
+          theme: theme,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to generate videos');
+      }
+
+      // Show success message
+      const successMsg = result.total_succeeded > 0
+        ? `Successfully generated ${result.total_succeeded} video${result.total_succeeded !== 1 ? 's' : ''}${result.total_failed > 0 ? ` (${result.total_failed} failed)` : ''}`
+        : 'Video generation completed';
+      setSuccessMessage(successMsg);
+
+      // Show errors if any
+      if (result.errors && result.errors.length > 0) {
+        console.error('Video generation errors:', result.errors);
+      }
+
+      // Close modal and refresh posts
+      setImageSelectionModalOpen(false);
+      setErrorMessage(null); // Clear any previous errors
+      setTimeout(() => {
+        fetchSocialPosts();
+        // Clear success message after refresh
+        setTimeout(() => setSuccessMessage(null), 3000);
+      }, 1000);
+    } catch (error) {
+      console.error('Error generating videos:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate videos. Please try again.';
+      setErrorMessage(errorMessage);
+      // Keep modal open on error so user can retry
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   // Progress steps for loading state
   const progressSteps = [
-    { message: 'Analyzing your property...', icon: '🏠' },
-    { message: 'Crafting captions...', icon: '✍️' },
-    { message: 'Selecting images...', icon: '🖼️' },
+    { message: 'Analyzing your property...', icon: '~' },
+    { message: 'Crafting captions...', icon: '~' },
+    { message: 'Selecting images...', icon: '~' },
     { message: 'Generating hashtags...', icon: '#' },
-    { message: 'Creating mockups...', icon: '🎨' },
-    { message: 'Almost done...', icon: '✓' },
+    { message: generateAsVideos ? 'Creating video reels...' : 'Creating mockups...', icon: '~' },
+    { message: 'Almost done...', icon: '~' },
   ];
 
   // Theme hints for content being generated
   const themeHints = [
-    { theme: 'lifestyle', icon: '✨', label: 'Lifestyle' },
-    { theme: 'amenities', icon: '🏊', label: 'Amenities' },
-    { theme: 'floor_plans', icon: '📐', label: 'Floor Plans' },
-    { theme: 'special_offers', icon: '🎁', label: 'Special Offers' },
-    { theme: 'reviews', icon: '⭐', label: 'Reviews' },
-    { theme: 'location', icon: '📍', label: 'Location' },
+    { theme: 'lifestyle', icon: '~', label: 'Lifestyle' },
+    { theme: 'amenities', icon: '~', label: 'Amenities' },
+    { theme: 'floor_plans', icon: '~', label: 'Floor Plans' },
+    { theme: 'special_offers', icon: '~', label: 'Special Offers' },
+    { theme: 'reviews', icon: '~', label: 'Reviews' },
+    { theme: 'location', icon: '~', label: 'Location' },
   ];
 
   // Cycle through progress steps during generation
@@ -125,7 +337,10 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ post_count: 8 }),
+        body: JSON.stringify({
+          post_count: 8,
+          generate_as_videos: generateAsVideos,
+        }),
       });
 
       const result = await response.json();
@@ -135,7 +350,8 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
       }
 
       // Show success message
-      setSuccessMessage(result.message || `Successfully generated ${result.count} posts!`);
+      const videoSuffix = generateAsVideos ? ' (videos will generate in background)' : '';
+      setSuccessMessage(result.message || `Successfully generated ${result.count} posts!${videoSuffix}`);
 
       // Auto-refresh posts after a short delay
       setTimeout(() => {
@@ -143,11 +359,34 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
         // Clear success message after refresh
         setTimeout(() => setSuccessMessage(null), 3000);
       }, 1000);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error generating posts:', error);
-      setErrorMessage(error.message || 'Failed to generate posts. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate posts. Please try again.';
+      setErrorMessage(errorMessage);
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleDownload = async (post: PropertySocialPost, e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    const url = post.is_video && post.video_url ? post.video_url : post.image_url;
+    const extension = post.is_video && post.video_url ? 'mp4' : 'jpg';
+
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `${post.theme}-post-${post.id.slice(0, 8)}.${extension}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error('Download failed:', error);
     }
   };
 
@@ -161,7 +400,7 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-neutral-600">Loading posts...</p>
+          <p className="text-muted-foreground">Loading posts...</p>
         </CardContent>
       </Card>
     );
@@ -171,54 +410,69 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
     return (
       <Card className="transition-all duration-300 hover:shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl font-display text-secondary-700 flex items-center gap-2">
+          <CardTitle className="text-2xl font-display text-secondary-700 dark:text-secondary-300 flex items-center gap-2">
             <Megaphone className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
             Social Media Posts
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Card className="bg-neutral-50">
-            <CardContent className="p-8 text-center">
-              <div className="max-w-md mx-auto">
-                <Megaphone className="w-12 h-12 text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
-                <p className="text-neutral-600 mb-2 font-medium">
-                  Ready to create some magic?
-                </p>
-                <p className="text-sm text-neutral-500 mb-6">
-                  Click the button below and we'll create amazing, ready-to-post social media content for you!
-                </p>
-                
-                {/* Generate Button */}
-                <Button
-                  onClick={handleGeneratePosts}
-                  disabled={isGenerating}
-                  className="inline-flex items-center gap-2"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-                    />
-                  </svg>
-                  Generate Posts
-                </Button>
-
-                {/* Error Message */}
-                {errorMessage && (
-                  <div className="mt-4 p-3 bg-error-light border border-error-dark rounded-lg">
-                    <p className="text-sm text-error-dark">{errorMessage}</p>
-                  </div>
-                )}
+          {/* Generate as Videos Toggle */}
+          <div className="mb-6 p-4 bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-700">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={generateAsVideos}
+                  onChange={(e) => setGenerateAsVideos(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-neutral-300 dark:bg-neutral-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
               </div>
-            </CardContent>
-          </Card>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <Video className="w-5 h-5 text-primary-500" />
+                  <span className="font-semibold text-foreground">Generate as Video Reels</span>
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Create 9:16 vertical video reels optimized for Instagram and TikTok
+                </p>
+              </div>
+            </label>
+          </div>
+
+          <EmptyState
+            icon={Megaphone}
+            title="Ready to create some magic?"
+            description="Click the button below and we'll create amazing, ready-to-post social media content for you!"
+            actionLabel={generateAsVideos ? "Generate Video Reels" : "Generate Posts"}
+            onAction={handleGeneratePosts}
+            disabled={isGenerating}
+            actionIcon={
+              generateAsVideos ? (
+                <Video className="w-5 h-5" />
+              ) : (
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                  />
+                </svg>
+              )
+            }
+          />
+          {/* Error Message */}
+          {errorMessage && (
+            <div className="mt-4 p-3 bg-error-light dark:bg-error/20 border border-error-dark dark:border-error rounded-lg">
+              <p className="text-sm text-error-dark dark:text-error">{errorMessage}</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     );
@@ -330,7 +584,7 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">{progressSteps[currentStep].icon}</span>
-                    <span className="text-base font-semibold text-neutral-700">
+                    <span className="text-base font-semibold text-foreground">
                       {progressSteps[currentStep].message}
                     </span>
                   </div>
@@ -349,7 +603,7 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
                     }`}
                   >
                     <span className="text-sm">{hint.icon}</span>
-                    <span className="text-xs font-medium text-neutral-700">
+                    <span className="text-xs font-medium text-foreground">
                       {hint.label}
                     </span>
                   </div>
@@ -359,7 +613,7 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
               {/* Generating with AI Text */}
               <div className="flex items-center gap-2 mt-2">
                 <span className="text-sm text-neutral-600">
-                  Generating with{' '}
+                  {generateAsVideos ? 'Generating video reels with ' : 'Generating with '}
                   <span className="font-semibold bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent">
                     AI
                   </span>
@@ -383,11 +637,22 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
             <Megaphone className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
             Social Media Posts ({posts.length})
           </CardTitle>
-          {successMessage && (
-            <div className="px-4 py-2 bg-success-light rounded-lg shadow-sm">
-              <p className="text-sm text-success-dark font-medium">{successMessage}</p>
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            {successMessage && (
+              <div className="px-4 py-2 bg-success-light rounded-lg shadow-sm">
+                <p className="text-sm text-success-dark font-medium">{successMessage}</p>
+              </div>
+            )}
+            <Button
+              onClick={() => setImageSelectionModalOpen(true)}
+              variant="default"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Video className="w-4 h-4" />
+              Generate Videos
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -399,38 +664,65 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
             className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
             onClick={() => setSelectedPost(post)}
           >
-            {/* Mockup Image or Original Image */}
-            <div className="relative aspect-square bg-neutral-100">
-              {post.image_url ? (
-                <img
-                  src={post.image_url}
-                  alt={`${themeDisplayNames[post.theme] || post.theme} post`}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                  }}
+            {/* Mockup Image, Video, or Original Image */}
+            <div className="relative bg-neutral-100">
+              {post.is_video && post.video_url ? (
+                <VideoPlayer
+                  src={post.video_url.startsWith('http') ? post.video_url : `/api/videos/${encodeURIComponent(post.video_url)}`}
+                  poster={post.image_url}
+                  aspectRatio="square"
                 />
+              ) : post.is_video && post.video_generation_status && post.video_generation_status !== 'completed' ? (
+                <div className="relative aspect-square">
+                  {post.image_url && (
+                    <img
+                      src={post.image_url}
+                      alt={`${themeDisplayNames[post.theme] || post.theme} post`}
+                      className="w-full h-full object-cover opacity-50"
+                    />
+                  )}
+                  <VideoGenerationStatus status={post.video_generation_status} />
+                </div>
+              ) : post.image_url ? (
+                <div className="relative aspect-square">
+                  <img
+                    src={post.image_url}
+                    alt={`${themeDisplayNames[post.theme] || post.theme} post`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                </div>
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-neutral-100">
-                  <Megaphone className="w-12 h-12 text-neutral-300" />
+                <div className="aspect-square w-full h-full flex items-center justify-center bg-muted">
+                  <Megaphone className="w-12 h-12 text-muted-foreground" />
                 </div>
               )}
               {/* Theme Badge */}
-              <Badge 
-                variant="secondary" 
+              <Badge
+                variant="secondary"
                 className="absolute top-2 left-2 bg-black/70 text-white uppercase"
               >
                 {themeDisplayNames[post.theme] || post.theme}
               </Badge>
+              {/* Download Button */}
+              <button
+                onClick={(e) => handleDownload(post, e)}
+                className="absolute top-2 right-2 p-2 bg-black/70 hover:bg-black/90 text-white rounded-full transition-colors"
+                title={post.is_video ? "Download video" : "Download image"}
+              >
+                <Download className="w-4 h-4" />
+              </button>
             </div>
 
             {/* Post Info */}
             <CardContent className="p-4">
-              <p className="text-sm text-neutral-600 mb-2 line-clamp-2">
+              <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
                 {post.caption}
               </p>
-              <div className="flex items-center justify-between text-xs text-neutral-500">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>{post.hashtags?.length || 0} hashtags</span>
                 {post.cta && (
                   <span className="text-primary-600 font-medium">{post.cta}</span>
@@ -446,21 +738,44 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
         <Dialog open={!!selectedPost} onOpenChange={(open) => !open && setSelectedPost(null)}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-xl text-secondary-700">
+              <DialogTitle className="text-xl text-secondary-700 dark:text-secondary-300 flex items-center gap-2">
+                {selectedPost.is_video && <Video className="w-5 h-5 text-primary-500" />}
                 {themeDisplayNames[selectedPost.theme] || selectedPost.theme} Post
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-6">
-              {/* Image */}
-              <div className="relative aspect-square bg-neutral-100 rounded-lg overflow-hidden">
-                <img
-                  src={selectedPost.image_url}
-                  alt={`${themeDisplayNames[selectedPost.theme] || selectedPost.theme} post`}
-                  className="w-full h-full object-cover"
-                />
-                {selectedPost.mockup_image_url && (
+              {/* Video or Image */}
+              <div className="relative bg-neutral-100 rounded-lg overflow-hidden">
+                {selectedPost.is_video && selectedPost.video_url ? (
+                  <div className="aspect-[9/16] max-h-[60vh] mx-auto">
+                    <video
+                      src={selectedPost.video_url.startsWith('http') ? selectedPost.video_url : `/api/videos/${encodeURIComponent(selectedPost.video_url)}`}
+                      poster={selectedPost.image_url}
+                      className="w-full h-full object-contain bg-black"
+                      controls
+                      autoPlay
+                      loop
+                      playsInline
+                    />
+                  </div>
+                ) : (
+                  <div className="aspect-square">
+                    <img
+                      src={selectedPost.image_url}
+                      alt={`${themeDisplayNames[selectedPost.theme] || selectedPost.theme} post`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                {selectedPost.mockup_image_url && !selectedPost.is_video && (
                   <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
                     Mockup Available
+                  </div>
+                )}
+                {selectedPost.is_video && (
+                  <div className="absolute top-2 right-2 bg-primary-500 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
+                    <Video className="w-3 h-3" />
+                    Video Reel
                   </div>
                 )}
               </div>
@@ -498,23 +813,35 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
               {/* CTA */}
               {selectedPost.cta && (
                 <div>
-                  <h4 className="text-sm font-semibold text-neutral-700 mb-2 uppercase tracking-wide">
+                  <h4 className="text-sm font-semibold text-foreground mb-2 uppercase tracking-wide">
                     Call to Action
                   </h4>
-                  <p className="text-base text-neutral-900 font-medium">
+                  <p className="text-base text-foreground font-medium">
                     {selectedPost.cta}
                   </p>
                 </div>
               )}
 
+              {/* Download Button */}
+              <div className="pt-4">
+                <Button
+                  onClick={(e) => handleDownload(selectedPost, e)}
+                  className="w-full"
+                  variant="default"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  {selectedPost.is_video ? 'Download Video' : 'Download Image'}
+                </Button>
+              </div>
+
               {/* Metadata */}
-              <div className="pt-4 border-t border-neutral-200">
-                <div className="grid grid-cols-2 gap-4 text-sm text-neutral-600">
+              <div className="pt-4 border-t border-border">
+                <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
                   <div>
                     <span className="font-semibold">Platform:</span> {selectedPost.platform}
                   </div>
                   <div>
-                    <span className="font-semibold">Type:</span> {selectedPost.post_type}
+                    <span className="font-semibold">Type:</span> {selectedPost.is_video ? 'Video Reel' : selectedPost.post_type}
                   </div>
                   {selectedPost.created_at && (
                     <div>
@@ -528,8 +855,31 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Image Selection Modal */}
+      <ImageSelectionModal
+        open={imageSelectionModalOpen}
+        onOpenChange={(open) => {
+          setImageSelectionModalOpen(open);
+          if (!open) {
+            // Clear error message when modal closes
+            setErrorMessage(null);
+          }
+        }}
+        images={images}
+        propertyId={propertyId}
+        onGenerate={handleGenerateVideos}
+      />
+
+      {/* Error Message for Video Generation */}
+      {errorMessage && (
+        <div className="px-6 pb-4">
+          <div className="p-3 bg-error-light dark:bg-error/20 border border-error-dark dark:border-error rounded-lg">
+            <p className="text-sm text-error-dark dark:text-error">{errorMessage}</p>
+          </div>
+        </div>
+      )}
       </CardContent>
     </Card>
   );
 }
-

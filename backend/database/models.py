@@ -705,7 +705,7 @@ class Competitor:
 
 class PropertySocialPost:
     """Model for property social media post information."""
-    
+
     def __init__(
         self,
         property_id: str,
@@ -719,6 +719,9 @@ class PropertySocialPost:
         hashtags: Optional[List[str]] = None,
         cta: Optional[str] = None,
         mockup_image_url: Optional[str] = None,
+        video_url: Optional[str] = None,
+        is_video: bool = False,
+        video_metadata: Optional[Dict[str, Any]] = None,
         id: Optional[str] = None,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None
@@ -734,10 +737,13 @@ class PropertySocialPost:
         self.cta = cta
         self.ready_to_post_text = ready_to_post_text
         self.mockup_image_url = mockup_image_url
+        self.video_url = video_url
+        self.is_video = is_video
+        self.video_metadata = video_metadata
         self.structured_data = structured_data
         self.created_at = created_at
         self.updated_at = updated_at
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert social post to dictionary for database insertion."""
         data = {
@@ -756,8 +762,14 @@ class PropertySocialPost:
             data["cta"] = self.cta
         if self.mockup_image_url is not None:
             data["mockup_image_url"] = self.mockup_image_url
+        if self.video_url is not None:
+            data["video_url"] = self.video_url
+        if self.is_video:
+            data["is_video"] = self.is_video
+        if self.video_metadata is not None:
+            data["video_metadata"] = self.video_metadata
         return data
-    
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "PropertySocialPost":
         """Create PropertySocialPost instance from database dictionary."""
@@ -773,6 +785,9 @@ class PropertySocialPost:
             cta=data.get("cta"),
             ready_to_post_text=data.get("ready_to_post_text", ""),
             mockup_image_url=data.get("mockup_image_url"),
+            video_url=data.get("video_url"),
+            is_video=data.get("is_video", False),
+            video_metadata=data.get("video_metadata"),
             structured_data=data.get("structured_data", {}),
             created_at=data.get("created_at"),
             updated_at=data.get("updated_at")

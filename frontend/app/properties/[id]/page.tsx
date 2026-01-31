@@ -16,6 +16,7 @@ import SocialPostsSection from '@/app/components/SocialPostsSection';
 import ImageGallery from '@/app/components/ImageGallery';
 import ExtractionLoadingState from '@/app/components/ExtractionLoadingState';
 import StatusMessage from '@/app/components/StatusMessage';
+import EmptyState from '@/app/components/EmptyState';
 import { useExtractionState } from '@/app/hooks/useExtractionState';
 import { getPrimaryTag, getCategoryDisplayName, getCategorySortOrder, sortCategoriesByOrder } from '@/lib/imageCategories';
 
@@ -1204,21 +1205,15 @@ export default function PropertyDetailPage() {
                     isGenerating={floorPlansExtraction.isLoading}
                   />
                 ) : (
-                  <Card className="shadow-sm bg-neutral-50">
-                    <CardContent className="p-8 text-center">
-                    <div className="max-w-md mx-auto">
-                      <Layout className="w-12 h-12 text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
-                      <p className="text-neutral-600 mb-2 font-medium">
-                        No floor plans collected yet
-                      </p>
-                      <p className="text-sm text-neutral-500 mb-6">
-                        Floor plan information will appear here once collected from the property website.
-                      </p>
-                      <button
-                        onClick={handleExtractFloorPlans}
-                        disabled={floorPlansExtraction.isLoading}
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-primary-300"
-                      >
+                  <>
+                    <EmptyState
+                      icon={Layout}
+                      title="No floor plans collected yet"
+                      description="Floor plan information will appear here once collected from the property website."
+                      actionLabel="Extract Floor Plans"
+                      onAction={handleExtractFloorPlans}
+                      disabled={floorPlansExtraction.isLoading}
+                      actionIcon={
                         <svg
                           className="w-5 h-5"
                           fill="none"
@@ -1232,25 +1227,23 @@ export default function PropertyDetailPage() {
                             d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
                           />
                         </svg>
-                        Extract Floor Plans
-                      </button>
-                      {floorPlansExtraction.success && (
-                        <StatusMessage
-                          type="success"
-                          message={floorPlansExtraction.success}
-                          onDismiss={() => floorPlansExtraction.clearMessages()}
-                        />
-                      )}
-                      {floorPlansExtraction.error && (
-                        <StatusMessage
-                          type="error"
-                          message={floorPlansExtraction.error}
-                          onRetry={floorPlansExtraction.retry}
-                        />
-                      )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                      }
+                    />
+                    {floorPlansExtraction.success && (
+                      <StatusMessage
+                        type="success"
+                        message={floorPlansExtraction.success}
+                        onDismiss={() => floorPlansExtraction.clearMessages()}
+                      />
+                    )}
+                    {floorPlansExtraction.error && (
+                      <StatusMessage
+                        type="error"
+                        message={floorPlansExtraction.error}
+                        onRetry={floorPlansExtraction.retry}
+                      />
+                    )}
+                  </>
                 )}
               </>
             )}
@@ -1338,53 +1331,45 @@ export default function PropertyDetailPage() {
                     isGenerating={specialOffersExtraction.isLoading}
                   />
                 ) : (
-                  <Card className="shadow-sm bg-neutral-50">
-                    <CardContent className="p-8 text-center">
-                      <div className="max-w-md mx-auto">
-                        <Gift className="w-12 h-12 text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
-                        <p className="text-neutral-600 mb-2 font-medium">
-                          No special offers collected yet
-                        </p>
-                        <p className="text-sm text-neutral-500 mb-6">
-                          Special offers and promotions will appear here once collected from the property website.
-                        </p>
-                        <button
-                          onClick={handleExtractSpecialOffers}
-                          disabled={specialOffersExtraction.isLoading}
-                          className="inline-flex items-center gap-2 px-6 py-3 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-primary-300"
+                  <>
+                    <EmptyState
+                      icon={Gift}
+                      title="No special offers collected yet"
+                      description="Special offers and promotions will appear here once collected from the property website."
+                      actionLabel="Extract Special Offers"
+                      onAction={handleExtractSpecialOffers}
+                      disabled={specialOffersExtraction.isLoading}
+                      actionIcon={
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
                         >
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-                            />
-                          </svg>
-                          Extract Special Offers
-                        </button>
-                        {specialOffersExtraction.success && (
-                          <StatusMessage
-                            type="success"
-                            message={specialOffersExtraction.success}
-                            onDismiss={() => specialOffersExtraction.clearMessages()}
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
                           />
-                        )}
-                        {specialOffersExtraction.error && (
-                          <StatusMessage
-                            type="error"
-                            message={specialOffersExtraction.error}
-                            onRetry={specialOffersExtraction.retry}
-                          />
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                        </svg>
+                      }
+                    />
+                    {specialOffersExtraction.success && (
+                      <StatusMessage
+                        type="success"
+                        message={specialOffersExtraction.success}
+                        onDismiss={() => specialOffersExtraction.clearMessages()}
+                      />
+                    )}
+                    {specialOffersExtraction.error && (
+                      <StatusMessage
+                        type="error"
+                        message={specialOffersExtraction.error}
+                        onRetry={specialOffersExtraction.retry}
+                      />
+                    )}
+                  </>
                 )}
               </>
             )}
@@ -1473,53 +1458,45 @@ export default function PropertyDetailPage() {
                     isGenerating={brandIdentityExtraction.isLoading}
                   />
                 ) : (
-                  <Card className="shadow-sm bg-neutral-50">
-                    <CardContent className="p-8 text-center">
-                      <div className="max-w-md mx-auto">
-                        <Palette className="w-12 h-12 text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
-                        <p className="text-neutral-600 mb-2 font-medium">
-                          No brand identity collected yet
-                        </p>
-                        <p className="text-sm text-neutral-500 mb-6">
-                          Brand identity information including colors, fonts, tone, and tagline will appear here once collected from the property website.
-                        </p>
-                        <button
-                          onClick={handleExtractBrandIdentity}
-                          disabled={brandIdentityExtraction.isLoading}
-                          className="inline-flex items-center gap-2 px-6 py-3 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-primary-300"
+                  <>
+                    <EmptyState
+                      icon={Palette}
+                      title="No brand identity collected yet"
+                      description="Brand identity information including colors, fonts, tone, and tagline will appear here once collected from the property website."
+                      actionLabel="Extract Brand Identity"
+                      onAction={handleExtractBrandIdentity}
+                      disabled={brandIdentityExtraction.isLoading}
+                      actionIcon={
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
                         >
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-                            />
-                          </svg>
-                          Extract Brand Identity
-                        </button>
-                        {brandIdentityExtraction.success && (
-                          <StatusMessage
-                            type="success"
-                            message={brandIdentityExtraction.success}
-                            onDismiss={() => brandIdentityExtraction.clearMessages()}
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
                           />
-                        )}
-                        {brandIdentityExtraction.error && (
-                          <StatusMessage
-                            type="error"
-                            message={brandIdentityExtraction.error}
-                            onRetry={brandIdentityExtraction.retry}
-                          />
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                        </svg>
+                      }
+                    />
+                    {brandIdentityExtraction.success && (
+                      <StatusMessage
+                        type="success"
+                        message={brandIdentityExtraction.success}
+                        onDismiss={() => brandIdentityExtraction.clearMessages()}
+                      />
+                    )}
+                    {brandIdentityExtraction.error && (
+                      <StatusMessage
+                        type="error"
+                        message={brandIdentityExtraction.error}
+                        onRetry={brandIdentityExtraction.retry}
+                      />
+                    )}
+                  </>
                 )}
               </>
             )}
@@ -1573,21 +1550,15 @@ export default function PropertyDetailPage() {
                       isGenerating={imagesExtraction.isLoading}
                     />
                   ) : (
-                    <Card className="shadow-sm bg-neutral-50">
-                    <CardContent className="p-8 text-center">
-                      <div className="max-w-md mx-auto">
-                        <ImageIcon className="w-12 h-12 text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
-                        <p className="text-neutral-600 mb-2 font-medium">
-                          No images collected yet
-                        </p>
-                        <p className="text-sm text-neutral-500 mb-6">
-                          Property images will appear here once collected from the property website.
-                        </p>
-                        <button
-                          onClick={handleExtractImages}
-                          disabled={imagesExtraction.isLoading}
-                          className="inline-flex items-center gap-2 px-6 py-3 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-primary-300"
-                        >
+                    <>
+                      <EmptyState
+                        icon={ImageIcon}
+                        title="No images collected yet"
+                        description="Property images will appear here once collected from the property website."
+                        actionLabel="Extract Images"
+                        onAction={handleExtractImages}
+                        disabled={imagesExtraction.isLoading}
+                        actionIcon={
                           <svg
                             className="w-5 h-5"
                             fill="none"
@@ -1601,25 +1572,23 @@ export default function PropertyDetailPage() {
                               d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
                             />
                           </svg>
-                          Extract Images
-                        </button>
-                        {imagesExtraction.success && (
-                          <StatusMessage
-                            type="success"
-                            message={imagesExtraction.success}
-                            onDismiss={() => imagesExtraction.clearMessages()}
-                          />
-                        )}
-                        {imagesExtraction.error && (
-                          <StatusMessage
-                            type="error"
-                            message={imagesExtraction.error}
-                            onRetry={imagesExtraction.retry}
-                          />
-                        )}
-                      </div>
-                    </CardContent>
-                    </Card>
+                        }
+                      />
+                      {imagesExtraction.success && (
+                        <StatusMessage
+                          type="success"
+                          message={imagesExtraction.success}
+                          onDismiss={() => imagesExtraction.clearMessages()}
+                        />
+                      )}
+                      {imagesExtraction.error && (
+                        <StatusMessage
+                          type="error"
+                          message={imagesExtraction.error}
+                          onRetry={imagesExtraction.retry}
+                        />
+                      )}
+                    </>
                   )}
                 </>
               ) : (
@@ -1806,17 +1775,20 @@ export default function PropertyDetailPage() {
                   </h3>
                   {amenities.amenities_data.building_amenities && amenities.amenities_data.building_amenities.length > 0 ? (
                     <ul className="space-y-1">
-                      {amenities.amenities_data.building_amenities.map((amenity, index) => (
-                        <li
-                          key={index}
-                          className="text-base text-neutral-900 leading-relaxed"
-                        >
-                          • {amenity.name}
-                        </li>
-                      ))}
+                      {amenities.amenities_data.building_amenities.map((amenity, index) => {
+                        const amenityName = typeof amenity === 'string' ? amenity : amenity.name || amenity;
+                        return (
+                          <li
+                            key={index}
+                            className="text-base text-foreground leading-relaxed"
+                          >
+                            • {amenityName}
+                          </li>
+                        );
+                      })}
                     </ul>
                   ) : (
-                    <p className="text-neutral-800">
+                    <p className="text-muted-foreground">
                       No building amenities listed.
                     </p>
                   )}
@@ -1824,22 +1796,25 @@ export default function PropertyDetailPage() {
 
                 {/* Apartment Amenities */}
                 <div>
-                  <h3 className="text-lg font-semibold text-neutral-900 mb-3">
+                  <h3 className="text-lg font-semibold text-foreground mb-3">
                     Apartment
                   </h3>
                   {amenities.amenities_data.apartment_amenities && amenities.amenities_data.apartment_amenities.length > 0 ? (
                     <ul className="space-y-1">
-                      {amenities.amenities_data.apartment_amenities.map((amenity, index) => (
-                        <li
-                          key={index}
-                          className="text-base text-neutral-900 leading-relaxed"
-                        >
-                          • {amenity.name}
-                        </li>
-                      ))}
+                      {amenities.amenities_data.apartment_amenities.map((amenity, index) => {
+                        const amenityName = typeof amenity === 'string' ? amenity : amenity.name || amenity;
+                        return (
+                          <li
+                            key={index}
+                            className="text-base text-foreground leading-relaxed"
+                          >
+                            • {amenityName}
+                          </li>
+                        );
+                      })}
                     </ul>
                   ) : (
-                    <p className="text-neutral-800">
+                    <p className="text-muted-foreground">
                       No apartment amenities listed.
                     </p>
                   )}
@@ -1853,21 +1828,15 @@ export default function PropertyDetailPage() {
                     isGenerating={amenitiesExtraction.isLoading}
                   />
                 ) : (
-                  <Card className="shadow-sm bg-neutral-50">
-                    <CardContent className="p-8 text-center">
-                    <div className="max-w-md mx-auto">
-                      <Star className="w-12 h-12 text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
-                      <p className="text-neutral-600 mb-2 font-medium">
-                        No amenities collected yet
-                      </p>
-                      <p className="text-sm text-neutral-500 mb-6">
-                        Building and apartment amenities will appear here once collected from the property website.
-                      </p>
-                      <button
-                        onClick={handleExtractAmenities}
-                        disabled={amenitiesExtraction.isLoading}
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-primary-300"
-                      >
+                  <>
+                    <EmptyState
+                      icon={Star}
+                      title="No amenities collected yet"
+                      description="Building and apartment amenities will appear here once collected from the property website."
+                      actionLabel="Extract Amenities"
+                      onAction={handleExtractAmenities}
+                      disabled={amenitiesExtraction.isLoading}
+                      actionIcon={
                         <svg
                           className="w-5 h-5"
                           fill="none"
@@ -1881,25 +1850,23 @@ export default function PropertyDetailPage() {
                             d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
                           />
                         </svg>
-                        Extract Amenities
-                      </button>
-                      {amenitiesExtraction.success && (
-                        <StatusMessage
-                          type="success"
-                          message={amenitiesExtraction.success}
-                          onDismiss={() => amenitiesExtraction.clearMessages()}
-                        />
-                      )}
-                      {amenitiesExtraction.error && (
-                        <StatusMessage
-                          type="error"
-                          message={amenitiesExtraction.error}
-                          onRetry={amenitiesExtraction.retry}
-                        />
-                      )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                      }
+                    />
+                    {amenitiesExtraction.success && (
+                      <StatusMessage
+                        type="success"
+                        message={amenitiesExtraction.success}
+                        onDismiss={() => amenitiesExtraction.clearMessages()}
+                      />
+                    )}
+                    {amenitiesExtraction.error && (
+                      <StatusMessage
+                        type="error"
+                        message={amenitiesExtraction.error}
+                        onRetry={amenitiesExtraction.retry}
+                      />
+                    )}
+                  </>
                 )}
               </>
             )}

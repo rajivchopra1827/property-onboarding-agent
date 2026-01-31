@@ -84,10 +84,10 @@ export default function AddPropertyForm({ onClose }: AddPropertyFormProps) {
   return (
     <Card className="shadow-md">
       <CardHeader>
-        <CardTitle className="text-2xl font-display text-secondary-700">
+        <CardTitle className="text-2xl font-display text-secondary-700 dark:text-secondary-300">
           Add New Property
         </CardTitle>
-        <CardDescription className="text-neutral-700">
+        <CardDescription className="text-muted-foreground">
           Enter the website URL of the property you want to onboard. We'll extract all the information automatically.
         </CardDescription>
       </CardHeader>
@@ -119,7 +119,7 @@ export default function AddPropertyForm({ onClose }: AddPropertyFormProps) {
           </div>
 
           {error && (
-            <Alert variant="destructive" className="bg-error-light text-error-dark shadow-sm">
+            <Alert variant="destructive" className="bg-error-light dark:bg-error/20 text-error-dark dark:text-error shadow-sm">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}

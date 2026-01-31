@@ -332,9 +332,9 @@ export default function ImageGallery({ images, initialIndex = 0, onClose, onImag
   if (localImages.length === 0) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col">
+    <div className="fixed inset-0 z-50 bg-background flex flex-col">
       {/* Top Navigation Bar */}
-      <div className="border-b border-neutral-200 bg-white px-6 py-4 flex items-center justify-between">
+      <div className="border-b border-border bg-background px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-bold text-secondary-700 font-display">Property Onboarding Agent</h1>
           
@@ -342,7 +342,7 @@ export default function ImageGallery({ images, initialIndex = 0, onClose, onImag
           {localImages.length > 1 && (
             <button
               onClick={handlePrevious}
-              className="text-neutral-700 hover:text-neutral-900 transition-colors p-2 rounded-lg hover:bg-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary-300"
+              className="text-foreground hover:text-foreground transition-colors p-2 rounded-lg hover:bg-accent focus:outline-none focus:ring-4 focus:ring-primary-300"
               aria-label="Previous image"
             >
               <svg
@@ -366,7 +366,7 @@ export default function ImageGallery({ images, initialIndex = 0, onClose, onImag
           {localImages.length > 1 && (
             <button
               onClick={handleNext}
-              className="text-neutral-700 hover:text-neutral-900 transition-colors p-2 rounded-lg hover:bg-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary-300"
+              className="text-foreground hover:text-foreground transition-colors p-2 rounded-lg hover:bg-accent focus:outline-none focus:ring-4 focus:ring-primary-300"
               aria-label="Next image"
             >
               <svg
@@ -445,7 +445,7 @@ export default function ImageGallery({ images, initialIndex = 0, onClose, onImag
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="text-neutral-500 hover:text-neutral-700 transition-colors p-2 rounded-lg hover:bg-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary-300"
+            className="text-muted-foreground hover:text-foreground transition-colors p-2 rounded-lg hover:bg-accent focus:outline-none focus:ring-4 focus:ring-primary-300"
             aria-label="Close gallery"
           >
             <svg
@@ -474,7 +474,7 @@ export default function ImageGallery({ images, initialIndex = 0, onClose, onImag
           {localImages.length > 1 && (
             <button
               onClick={handlePrevious}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-600 hover:text-neutral-900 bg-white/80 hover:bg-white shadow-lg rounded-full p-3 transition-all focus:outline-none focus:ring-4 focus:ring-primary-300 z-10"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground hover:text-foreground bg-background/80 hover:bg-background shadow-lg rounded-full p-3 transition-all focus:outline-none focus:ring-4 focus:ring-primary-300 z-10"
               aria-label="Previous image"
             >
               <svg
@@ -498,7 +498,7 @@ export default function ImageGallery({ images, initialIndex = 0, onClose, onImag
           <div className="flex-1 flex items-center justify-center w-full relative">
             {/* Hidden Image Badge - Top of Image */}
             {currentImage?.is_hidden && (
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-3 py-1.5 bg-neutral-100 text-neutral-600 rounded-lg text-sm font-medium border border-neutral-300 shadow-md">
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-3 py-1.5 bg-muted text-foreground rounded-lg text-sm font-medium border border-border shadow-md">
                 <EyeOff className="w-4 h-4" strokeWidth={2} />
                 <span>Hidden</span>
               </div>
@@ -559,7 +559,7 @@ export default function ImageGallery({ images, initialIndex = 0, onClose, onImag
 
             {/* Hidden Image Overlay - Subtle */}
             {currentImage?.is_hidden && (
-              <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] rounded-lg z-20 pointer-events-none"></div>
+              <div className="absolute inset-0 bg-background/50 backdrop-blur-[1px] rounded-lg z-20 pointer-events-none"></div>
             )}
             
             <img
@@ -623,7 +623,7 @@ export default function ImageGallery({ images, initialIndex = 0, onClose, onImag
           {/* Image Counter Below Image */}
           {localImages.length > 1 && (
             <div className="mt-4 flex items-center gap-3">
-              <div className="text-sm font-medium text-neutral-600">
+              <div className="text-sm font-medium text-muted-foreground">
                 {currentIndex + 1} / {localImages.length}
               </div>
             </div>
@@ -631,13 +631,13 @@ export default function ImageGallery({ images, initialIndex = 0, onClose, onImag
         </div>
 
         {/* Tag Editor Section - 1/3 width */}
-        <div className="w-1/3 border-l border-neutral-200 bg-white flex flex-col overflow-hidden">
+        <div className="w-1/3 border-l border-border bg-background flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="px-6 py-4 border-b border-neutral-200">
+          <div className="px-6 py-4 border-b border-border">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-secondary-700 font-display">Edit Tags</h2>
+              <h2 className="text-xl font-bold text-secondary-700 dark:text-secondary-300 font-display">Edit Tags</h2>
               {isSaving && (
-                <div className="flex items-center gap-2 text-sm text-neutral-500">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <svg
                     className="animate-spin h-4 w-4"
                     xmlns="http://www.w3.org/2000/svg"
@@ -698,7 +698,7 @@ export default function ImageGallery({ images, initialIndex = 0, onClose, onImag
 
             {/* Tags Section */}
             <div className="space-y-3">
-              <h3 className="text-base font-semibold text-neutral-900">Tags</h3>
+              <h3 className="text-base font-semibold text-foreground">Tags</h3>
               <div className="flex flex-col gap-2">
                 {[...allCategories].sort((a, b) => {
                   const nameA = getCategoryDisplayName(a);
@@ -749,7 +749,7 @@ export default function ImageGallery({ images, initialIndex = 0, onClose, onImag
                         className={`
                           focus:outline-none focus:ring-2 focus:ring-primary-300 rounded
                           disabled:opacity-50 disabled:cursor-not-allowed
-                          ${isActive ? 'cursor-pointer' : 'cursor-pointer hover:bg-neutral-50'}
+                          ${isActive ? 'cursor-pointer' : 'cursor-pointer hover:bg-muted'}
                         `}
                         title={isActive ? 'Click to remove tag' : 'Click to add tag'}
                       >

@@ -32,28 +32,28 @@ export default function ReviewsComparison({ properties }: ReviewsComparisonProps
 
   if (!hasReviews) {
     return (
-      <div className="bg-white rounded-lg border border-neutral-200 p-6">
-        <h2 className="text-xl font-semibold mb-4">Reviews</h2>
-        <p className="text-neutral-600">No reviews data available for comparison</p>
+      <div className="bg-card rounded-lg border border-border p-6">
+        <h2 className="text-xl font-semibold mb-4 text-foreground">Reviews</h2>
+        <p className="text-muted-foreground">No reviews data available for comparison</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg border border-neutral-200 overflow-x-auto">
-      <div className="px-6 py-4 border-b border-neutral-200">
-        <h2 className="text-xl font-semibold text-neutral-900">Reviews</h2>
+    <div className="bg-card rounded-lg border border-border overflow-x-auto">
+      <div className="px-6 py-4 border-b border-border">
+        <h2 className="text-xl font-semibold text-foreground">Reviews</h2>
       </div>
       <table className="w-full">
         <thead>
           <tr>
-            <th className="text-left px-4 py-3 text-sm font-semibold text-neutral-700 border-b border-neutral-200 bg-neutral-50">
+            <th className="text-left px-4 py-3 text-sm font-semibold text-foreground border-b border-border bg-muted">
               Metric
             </th>
             {properties.map((propData) => (
               <th
                 key={propData.property.id}
-                className="text-center px-4 py-3 text-sm font-semibold text-neutral-700 border-b border-neutral-200 bg-neutral-50 min-w-[200px] max-w-[280px]"
+                className="text-center px-4 py-3 text-sm font-semibold text-foreground border-b border-border bg-muted min-w-[200px] max-w-[280px]"
               >
                 {getDisplayName(propData.property)}
               </th>
@@ -62,8 +62,8 @@ export default function ReviewsComparison({ properties }: ReviewsComparisonProps
         </thead>
         <tbody>
           {/* Rating Row */}
-          <tr className="border-b border-neutral-200">
-            <td className="px-4 py-3 text-sm font-medium text-neutral-700 bg-white">
+          <tr className="border-b border-border">
+            <td className="px-4 py-3 text-sm font-medium text-foreground bg-card">
               Overall Rating
             </td>
             {properties.map((propData, index) => {
@@ -76,7 +76,7 @@ export default function ReviewsComparison({ properties }: ReviewsComparisonProps
                   key={propData.property.id}
                   className={`
                     px-4 py-3 text-sm text-center
-                    ${isBest ? 'bg-success-light text-success-dark font-semibold' : 'bg-white text-neutral-900'}
+                    ${isBest ? 'bg-success-light dark:bg-success/20 text-success-dark dark:text-success font-semibold' : 'bg-card text-foreground'}
                     transition-colors duration-200
                   `}
                 >
@@ -92,7 +92,7 @@ export default function ReviewsComparison({ properties }: ReviewsComparisonProps
                         <span className="text-yellow-500 text-sm">{getStarDisplay(rating)}</span>
                       </>
                     ) : (
-                      <span className="text-neutral-500">—</span>
+                      <span className="text-muted-foreground">—</span>
                     )}
                   </div>
                 </td>
@@ -101,8 +101,8 @@ export default function ReviewsComparison({ properties }: ReviewsComparisonProps
           </tr>
 
           {/* Review Count Row */}
-          <tr className="border-b border-neutral-200">
-            <td className="px-4 py-3 text-sm font-medium text-neutral-700 bg-white">
+          <tr className="border-b border-border">
+            <td className="px-4 py-3 text-sm font-medium text-foreground bg-card">
               Review Count
             </td>
             {properties.map((propData) => {
@@ -115,7 +115,7 @@ export default function ReviewsComparison({ properties }: ReviewsComparisonProps
                   key={propData.property.id}
                   className={`
                     px-4 py-3 text-sm text-center
-                    ${isBest ? 'bg-success-light text-success-dark font-semibold' : 'bg-white text-neutral-900'}
+                    ${isBest ? 'bg-success-light dark:bg-success/20 text-success-dark dark:text-success font-semibold' : 'bg-card text-foreground'}
                     transition-colors duration-200
                   `}
                 >
@@ -132,7 +132,7 @@ export default function ReviewsComparison({ properties }: ReviewsComparisonProps
 
           {/* Sentiment Summary Row */}
           <tr>
-            <td className="px-4 py-3 text-sm font-medium text-neutral-700 bg-white align-top">
+            <td className="px-4 py-3 text-sm font-medium text-foreground bg-card align-top">
               Sentiment Summary
             </td>
             {properties.map((propData) => {
@@ -142,11 +142,11 @@ export default function ReviewsComparison({ properties }: ReviewsComparisonProps
               return (
                 <td
                   key={propData.property.id}
-                  className="px-4 py-3 text-sm bg-white align-top"
+                  className="px-4 py-3 text-sm bg-card align-top"
                 >
                   {sentiment ? (
                     <div className="space-y-2">
-                      <p className="text-neutral-700 leading-relaxed">{sentiment}</p>
+                      <p className="text-foreground leading-relaxed">{sentiment}</p>
                       {googleMapsUrl && (
                         <a
                           href={googleMapsUrl}
@@ -159,7 +159,7 @@ export default function ReviewsComparison({ properties }: ReviewsComparisonProps
                       )}
                     </div>
                   ) : (
-                    <span className="text-neutral-500">—</span>
+                    <span className="text-muted-foreground">—</span>
                   )}
                 </td>
               );

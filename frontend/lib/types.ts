@@ -220,6 +220,9 @@ export interface PropertySocialPost {
   ready_to_post_text: string;
   mockup_image_url: string | null;
   structured_data: Record<string, any>;
+  is_video: boolean;
+  video_url: string | null;
+  video_generation_status: 'pending' | 'processing' | 'completed' | 'failed' | null;
   created_at: string | null;
   updated_at: string | null;
 }

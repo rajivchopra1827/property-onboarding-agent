@@ -67,8 +67,8 @@ export default function AmenitiesMatrix({ properties }: AmenitiesMatrixProps) {
     const uniqueKey = `${amenity.category}-${amenity.name}-${index}`;
 
     return (
-      <tr key={uniqueKey} className="border-b border-neutral-200">
-        <td className="px-4 py-3 text-sm text-neutral-700 bg-white">
+      <tr key={uniqueKey} className="border-b border-border">
+        <td className="px-4 py-3 text-sm text-foreground bg-card">
           {amenity.name}
         </td>
         {properties.map((propData) => {
@@ -76,24 +76,24 @@ export default function AmenitiesMatrix({ properties }: AmenitiesMatrixProps) {
           const isUnique = isUniqueForProperty(propData.property.id);
 
           let cellContent: React.ReactNode;
-          let cellClass = 'px-4 py-3 text-sm text-center bg-white';
+          let cellClass = 'px-4 py-3 text-sm text-center bg-card';
 
           if (hasAmenity === true) {
             cellContent = (
-              <span className="text-success-dark font-semibold text-lg">✓</span>
+              <span className="text-success dark:text-success-dark font-semibold text-lg">✓</span>
             );
             if (isUnique) {
-              cellClass += ' bg-primary-100';
+              cellClass += ' bg-primary-100 dark:bg-primary-900/30';
             }
           } else if (hasAmenity === false) {
             cellContent = (
-              <span className="text-error-dark text-lg">✗</span>
+              <span className="text-error dark:text-error-dark text-lg">✗</span>
             );
           } else {
             cellContent = (
-              <span className="text-neutral-400">–</span>
+              <span className="text-muted-foreground">–</span>
             );
-            cellClass += ' bg-neutral-50';
+            cellClass += ' bg-muted';
           }
 
           return (
@@ -109,10 +109,10 @@ export default function AmenitiesMatrix({ properties }: AmenitiesMatrixProps) {
   // Show loading state while normalizing
   if (normalizing) {
     return (
-      <div className="bg-white rounded-lg border border-neutral-200 p-6">
-        <h2 className="text-xl font-semibold mb-4">Amenities</h2>
-        <p className="text-neutral-600">Normalizing amenities...</p>
-        <p className="text-sm text-neutral-500 mt-2">This may take a few seconds for new amenities</p>
+      <div className="bg-card rounded-lg border border-border p-6">
+        <h2 className="text-xl font-semibold mb-4 text-foreground">Amenities</h2>
+        <p className="text-muted-foreground">Normalizing amenities...</p>
+        <p className="text-sm text-muted-foreground mt-2">This may take a few seconds for new amenities</p>
       </div>
     );
   }
@@ -125,37 +125,37 @@ export default function AmenitiesMatrix({ properties }: AmenitiesMatrixProps) {
 
   if (amenityMatrix.length === 0) {
     return (
-      <div className="bg-white rounded-lg border border-neutral-200 p-6">
-        <h2 className="text-xl font-semibold mb-4">Amenities</h2>
-        <p className="text-neutral-600">No amenities data available for comparison</p>
+      <div className="bg-card rounded-lg border border-border p-6">
+        <h2 className="text-xl font-semibold mb-4 text-foreground">Amenities</h2>
+        <p className="text-muted-foreground">No amenities data available for comparison</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg border border-neutral-200 overflow-x-auto">
-      <div className="px-6 py-4 border-b border-neutral-200">
-        <h2 className="text-xl font-semibold text-neutral-900">Amenities</h2>
-        <p className="text-sm text-neutral-600 mt-1">
+    <div className="bg-card rounded-lg border border-border overflow-x-auto">
+      <div className="px-6 py-4 border-b border-border">
+        <h2 className="text-xl font-semibold text-foreground">Amenities</h2>
+        <p className="text-sm text-muted-foreground mt-1">
           ✓ = Has amenity, ✗ = Doesn't have, – = Unknown
         </p>
       </div>
 
       {buildingAmenities.length > 0 && (
         <div className="mb-6">
-          <div className="px-6 py-3 bg-neutral-50 border-b border-neutral-200">
-            <h3 className="text-lg font-semibold text-neutral-900">Building Amenities</h3>
+          <div className="px-6 py-3 bg-muted border-b border-border">
+            <h3 className="text-lg font-semibold text-foreground">Building Amenities</h3>
           </div>
           <table className="w-full">
             <thead>
               <tr>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-neutral-700 border-b border-neutral-200 bg-neutral-50">
+                <th className="text-left px-4 py-3 text-sm font-semibold text-foreground border-b border-border bg-muted">
                   Amenity
                 </th>
                 {properties.map((propData) => (
                   <th
                     key={propData.property.id}
-                    className="text-center px-4 py-3 text-sm font-semibold text-neutral-700 border-b border-neutral-200 bg-neutral-50 min-w-[200px] max-w-[280px]"
+                    className="text-center px-4 py-3 text-sm font-semibold text-foreground border-b border-border bg-muted min-w-[200px] max-w-[280px]"
                   >
                     {getDisplayName(propData.property)}
                   </th>
@@ -171,19 +171,19 @@ export default function AmenitiesMatrix({ properties }: AmenitiesMatrixProps) {
 
       {apartmentAmenities.length > 0 && (
         <div>
-          <div className="px-6 py-3 bg-neutral-50 border-b border-neutral-200">
-            <h3 className="text-lg font-semibold text-neutral-900">Apartment Amenities</h3>
+          <div className="px-6 py-3 bg-muted border-b border-border">
+            <h3 className="text-lg font-semibold text-foreground">Apartment Amenities</h3>
           </div>
           <table className="w-full">
             <thead>
               <tr>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-neutral-700 border-b border-neutral-200 bg-neutral-50">
+                <th className="text-left px-4 py-3 text-sm font-semibold text-foreground border-b border-border bg-muted">
                   Amenity
                 </th>
                 {properties.map((propData) => (
                   <th
                     key={propData.property.id}
-                    className="text-center px-4 py-3 text-sm font-semibold text-neutral-700 border-b border-neutral-200 bg-neutral-50 min-w-[200px] max-w-[280px]"
+                    className="text-center px-4 py-3 text-sm font-semibold text-foreground border-b border-border bg-muted min-w-[200px] max-w-[280px]"
                   >
                     {getDisplayName(propData.property)}
                   </th>

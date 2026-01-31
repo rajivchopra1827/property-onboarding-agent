@@ -52,28 +52,28 @@ export default function FloorPlansComparison({ properties }: FloorPlansCompariso
 
   if (!hasFloorPlans) {
     return (
-      <div className="bg-white rounded-lg border border-neutral-200 p-6">
-        <h2 className="text-xl font-semibold mb-4">Floor Plans</h2>
-        <p className="text-neutral-600">No floor plans available for comparison</p>
+      <div className="bg-card rounded-lg border border-border p-6">
+        <h2 className="text-xl font-semibold mb-4 text-foreground">Floor Plans</h2>
+        <p className="text-muted-foreground">No floor plans available for comparison</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg border border-neutral-200 overflow-x-auto">
-      <div className="px-6 py-4 border-b border-neutral-200">
-        <h2 className="text-xl font-semibold text-neutral-900">Floor Plans</h2>
+    <div className="bg-card rounded-lg border border-border overflow-x-auto">
+      <div className="px-6 py-4 border-b border-border">
+        <h2 className="text-xl font-semibold text-foreground">Floor Plans</h2>
       </div>
       <table className="w-full">
         <thead>
           <tr>
-            <th className="text-left px-4 py-3 text-sm font-semibold text-neutral-700 border-b border-neutral-200 bg-neutral-50">
+            <th className="text-left px-4 py-3 text-sm font-semibold text-foreground border-b border-border bg-muted">
               Floor Plan
             </th>
             {properties.map((propData) => (
               <th
                 key={propData.property.id}
-                className="text-center px-4 py-3 text-sm font-semibold text-neutral-700 border-b border-neutral-200 bg-neutral-50 min-w-[200px] max-w-[280px]"
+                className="text-center px-4 py-3 text-sm font-semibold text-foreground border-b border-border bg-muted min-w-[200px] max-w-[280px]"
               >
                 {getDisplayName(propData.property)}
               </th>
@@ -94,8 +94,8 @@ export default function FloorPlansComparison({ properties }: FloorPlansCompariso
             if (!hasAnyPlan) return null;
 
             return (
-              <tr key={bedrooms} className="border-b border-neutral-200">
-                <td className="px-4 py-3 text-sm font-medium text-neutral-700 bg-white">
+              <tr key={bedrooms} className="border-b border-border">
+                <td className="px-4 py-3 text-sm font-medium text-foreground bg-card">
                   {bedroomLabel}
                 </td>
                 {plansForBedroom.map(({ propertyId, plan }) => {
@@ -103,7 +103,7 @@ export default function FloorPlansComparison({ properties }: FloorPlansCompariso
                     return (
                       <td
                         key={propertyId}
-                        className="px-4 py-3 text-sm text-center text-neutral-500 bg-white"
+                        className="px-4 py-3 text-sm text-center text-muted-foreground bg-card"
                       >
                         —
                       </td>
@@ -117,7 +117,7 @@ export default function FloorPlansComparison({ properties }: FloorPlansCompariso
                       key={propertyId}
                       className={`
                         px-4 py-3 text-sm text-center
-                        ${isBestValue ? 'bg-success-light text-success-dark font-semibold' : 'bg-white text-neutral-900'}
+                        ${isBestValue ? 'bg-success-light dark:bg-success/20 text-success-dark dark:text-success font-semibold' : 'bg-card text-foreground'}
                         transition-colors duration-200
                       `}
                     >
@@ -130,7 +130,7 @@ export default function FloorPlansComparison({ properties }: FloorPlansCompariso
                           )}
                         </div>
                         {plan.size_sqft && (
-                          <div className="text-xs text-neutral-600">
+                          <div className="text-xs text-muted-foreground">
                             {formatNumber(plan.size_sqft)} sqft
                           </div>
                         )}
@@ -145,9 +145,9 @@ export default function FloorPlansComparison({ properties }: FloorPlansCompariso
                         {plan.is_available !== null && (
                           <div className="text-xs">
                             {plan.is_available ? (
-                              <span className="text-success-dark">Available</span>
+                              <span className="text-success dark:text-success-dark">Available</span>
                             ) : (
-                              <span className="text-neutral-500">Not Available</span>
+                              <span className="text-muted-foreground">Not Available</span>
                             )}
                           </div>
                         )}

@@ -16,7 +16,7 @@ export default function CollapsibleSection({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (
-    <div className="bg-white rounded-lg border border-neutral-200 mb-6 overflow-hidden">
+    <div className="bg-card rounded-lg border border-border mb-6 overflow-hidden">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         onKeyDown={(e) => {
@@ -27,13 +27,13 @@ export default function CollapsibleSection({
             setIsExpanded(false);
           }
         }}
-        className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-neutral-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-300"
+        className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-primary-300"
         aria-expanded={isExpanded}
         aria-controls={`collapsible-content-${title.replace(/\s+/g, '-').toLowerCase()}`}
       >
-        <h2 className="text-xl font-semibold text-neutral-900">{title}</h2>
+        <h2 className="text-xl font-semibold text-foreground">{title}</h2>
         <svg
-          className={`w-5 h-5 text-neutral-600 transition-transform duration-200 ${
+          className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${
             isExpanded ? 'rotate-180' : ''
           }`}
           fill="none"

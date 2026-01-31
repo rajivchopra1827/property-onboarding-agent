@@ -86,17 +86,17 @@ export default function OnboardingHero({ url, completedSteps, totalSteps }: Onbo
   const currentStepIndex = getCurrentStepIndex();
 
   return (
-    <div className="rounded-lg border border-neutral-200 shadow-md bg-gradient-to-br from-neutral-50 via-primary-50/30 to-secondary-50/30 p-6 mb-8 overflow-hidden relative">
+    <div className="rounded-lg border border-border shadow-md bg-gradient-to-br from-muted via-primary-50/30 dark:via-primary-900/20 to-secondary-50/30 dark:to-secondary-900/20 p-6 mb-8 overflow-hidden relative">
       {/* Background gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-50/20 via-transparent to-secondary-50/20 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary-50/20 dark:from-primary-900/10 via-transparent to-secondary-50/20 dark:to-secondary-900/10 pointer-events-none" />
 
       <div className="relative z-10">
         {/* Header */}
         <div className="text-center mb-4">
-          <h1 className="text-4xl font-bold text-secondary-700 mb-2 font-display">
+          <h1 className="text-4xl font-bold text-secondary-700 dark:text-secondary-300 mb-2 font-display">
             Onboarding Property
           </h1>
-          <p className="text-lg text-neutral-800 leading-relaxed">
+          <p className="text-lg text-foreground leading-relaxed">
             {url}
           </p>
         </div>
@@ -149,7 +149,7 @@ export default function OnboardingHero({ url, completedSteps, totalSteps }: Onbo
           </div>
 
           {/* Horizontal Progress Bar */}
-          <div className="w-full max-w-5xl h-1.5 bg-neutral-200 rounded-full overflow-hidden">
+          <div className="w-full max-w-5xl h-1.5 bg-muted rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-primary-500 to-secondary-500 transition-all duration-500 ease-out rounded-full"
               style={{ width: `${progress}%` }}
@@ -164,7 +164,7 @@ export default function OnboardingHero({ url, completedSteps, totalSteps }: Onbo
             >
               <div className="flex items-center gap-2">
                 <span className="text-2xl">{currentMessage.icon}</span>
-                <span className="text-lg font-semibold text-neutral-700">
+                <span className="text-lg font-semibold text-foreground">
                   {currentMessage.text}
                 </span>
               </div>
@@ -173,7 +173,7 @@ export default function OnboardingHero({ url, completedSteps, totalSteps }: Onbo
 
           {/* Progress Text */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-neutral-600">
+            <span className="text-sm text-muted-foreground">
               {completedSteps.length} of {totalSteps} steps completed
             </span>
           </div>

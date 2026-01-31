@@ -41,28 +41,28 @@ export default function SpecialOffersGrid({ properties }: SpecialOffersGridProps
 
   if (!hasOffers) {
     return (
-      <div className="bg-white rounded-lg border border-neutral-200 p-6">
-        <h2 className="text-xl font-semibold mb-4">Special Offers</h2>
-        <p className="text-neutral-600">No special offers available for comparison</p>
+      <div className="bg-card rounded-lg border border-border p-6">
+        <h2 className="text-xl font-semibold mb-4 text-foreground">Special Offers</h2>
+        <p className="text-muted-foreground">No special offers available for comparison</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg border border-neutral-200 overflow-x-auto">
-      <div className="px-6 py-4 border-b border-neutral-200">
-        <h2 className="text-xl font-semibold text-neutral-900">Special Offers</h2>
+    <div className="bg-card rounded-lg border border-border overflow-x-auto">
+      <div className="px-6 py-4 border-b border-border">
+        <h2 className="text-xl font-semibold text-foreground">Special Offers</h2>
       </div>
       <table className="w-full">
         <thead>
           <tr>
-            <th className="text-left px-4 py-3 text-sm font-semibold text-neutral-700 border-b border-neutral-200 bg-neutral-50">
+            <th className="text-left px-4 py-3 text-sm font-semibold text-foreground border-b border-border bg-muted">
               Property
             </th>
             {properties.map((propData) => (
               <th
                 key={propData.property.id}
-                className="text-center px-4 py-3 text-sm font-semibold text-neutral-700 border-b border-neutral-200 bg-neutral-50 min-w-[200px] max-w-[280px]"
+                className="text-center px-4 py-3 text-sm font-semibold text-foreground border-b border-border bg-muted min-w-[200px] max-w-[280px]"
               >
                 {getDisplayName(propData.property)}
               </th>
@@ -71,7 +71,7 @@ export default function SpecialOffersGrid({ properties }: SpecialOffersGridProps
         </thead>
         <tbody>
           <tr>
-            <td className="px-4 py-3 text-sm font-medium text-neutral-700 bg-white align-top">
+            <td className="px-4 py-3 text-sm font-medium text-foreground bg-card align-top">
               Offers
             </td>
             {properties.map((propData) => {
@@ -80,25 +80,25 @@ export default function SpecialOffersGrid({ properties }: SpecialOffersGridProps
               return (
                 <td
                   key={propData.property.id}
-                  className="px-4 py-3 text-sm bg-white align-top"
+                  className="px-4 py-3 text-sm bg-card align-top"
                 >
                   {offers.length > 0 ? (
                     <div className="space-y-4">
                       {offers.map((offer) => (
                         <div
                           key={offer.id}
-                          className="border border-primary-200 rounded-lg p-3 bg-primary-50"
+                          className="border border-primary-200 dark:border-primary-800 rounded-lg p-3 bg-primary-50 dark:bg-primary-900/20"
                         >
-                          <div className="font-semibold text-neutral-900 mb-1">
+                          <div className="font-semibold text-foreground mb-1">
                             {offer.offer_description}
                           </div>
                           {offer.descriptive_text && (
-                            <div className="text-xs text-neutral-700 mb-2">
+                            <div className="text-xs text-foreground mb-2">
                               {offer.descriptive_text}
                             </div>
                           )}
                           {offer.valid_until && (
-                            <div className="text-xs text-neutral-600">
+                            <div className="text-xs text-muted-foreground">
                               Valid until: {formatDate(offer.valid_until)}
                             </div>
                           )}
@@ -106,7 +106,7 @@ export default function SpecialOffersGrid({ properties }: SpecialOffersGridProps
                       ))}
                     </div>
                   ) : (
-                    <span className="text-neutral-500">—</span>
+                    <span className="text-muted-foreground">—</span>
                   )}
                 </td>
               );

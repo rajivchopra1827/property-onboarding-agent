@@ -95,7 +95,7 @@ export default function OnboardingProgressCard({
             status === 'completed' && 'text-success',
             status === 'error' && 'text-error',
             status === 'in_progress' && 'text-primary-500',
-            status === 'pending' && 'text-neutral-400'
+            status === 'pending' && 'text-muted-foreground'
           )}
           strokeWidth={status === 'in_progress' ? 2.5 : 2}
         />
@@ -113,7 +113,7 @@ export default function OnboardingProgressCard({
         );
       case 'in_progress':
         return (
-          <div className="flex-shrink-0 w-5 h-5 rounded-full border-2 border-primary-500 border-t-transparent animate-spin shadow-sm bg-white" />
+          <div className="flex-shrink-0 w-5 h-5 rounded-full border-2 border-primary-500 border-t-transparent animate-spin shadow-sm bg-background" />
         );
       case 'error':
         return (
@@ -123,7 +123,7 @@ export default function OnboardingProgressCard({
         );
       default:
         return (
-          <div className="flex-shrink-0 w-5 h-5 rounded-full border-2 border-neutral-300 bg-white shadow-sm" />
+          <div className="flex-shrink-0 w-5 h-5 rounded-full border-2 border-border bg-background shadow-sm" />
         );
     }
   };
@@ -137,7 +137,7 @@ export default function OnboardingProgressCard({
       case 'error':
         return 'border-error border-2';
       default:
-        return 'border-neutral-200 opacity-60';
+        return 'border-border opacity-60';
     }
   };
 
@@ -145,7 +145,7 @@ export default function OnboardingProgressCard({
     <Card
       className={cn(
         'transition-all duration-500 ease-out p-4',
-        status === 'pending' && 'translate-y-2 bg-neutral-50',
+        status === 'pending' && 'translate-y-2 bg-muted',
         status !== 'pending' && 'opacity-100 translate-y-0',
         getCardVariant()
       )}
@@ -168,10 +168,10 @@ export default function OnboardingProgressCard({
             <div className="flex items-center gap-2 mb-1">
               <h3 className={cn(
                 'text-lg font-semibold',
-                status === 'completed' && 'text-success-dark',
-                status === 'error' && 'text-error-dark',
-                status === 'in_progress' && 'text-primary-600',
-                status === 'pending' && 'text-neutral-600'
+                status === 'completed' && 'text-success dark:text-success-dark',
+                status === 'error' && 'text-error dark:text-error-dark',
+                status === 'in_progress' && 'text-primary-600 dark:text-primary-400',
+                status === 'pending' && 'text-muted-foreground'
               )}>
                 {displayName}
               </h3>
@@ -191,12 +191,12 @@ export default function OnboardingProgressCard({
                 </Badge>
               )}
             </div>
-            <p className="text-sm text-neutral-600 mb-2">
+            <p className="text-sm text-muted-foreground mb-2">
               {description}
             </p>
             {error && (
               <div className="mt-2">
-                <p className="text-sm text-error-dark mb-2">
+                <p className="text-sm text-error dark:text-error-dark mb-2">
                   {error}
                 </p>
                 {onRetry && (

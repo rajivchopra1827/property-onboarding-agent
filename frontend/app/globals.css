@@ -84,6 +84,87 @@
   --info-dark: #0091EA;
 }
 
+.dark {
+  /* shadcn/ui Theme Variables (HSL format) - Dark Mode */
+  --background: hsl(0 0% 3%);
+  --foreground: hsl(0 0% 98%);
+  
+  --card: hsl(0 0% 5%);
+  --card-foreground: hsl(0 0% 98%);
+  
+  --popover: hsl(0 0% 5%);
+  --popover-foreground: hsl(0 0% 98%);
+  
+  --primary: hsl(330 85% 65%); /* Adjusted pink for better contrast */
+  --primary-foreground: hsl(0 0% 98%);
+  
+  --secondary: hsl(280 60% 50%); /* Adjusted purple for better contrast */
+  --secondary-foreground: hsl(0 0% 98%);
+  
+  --muted: hsl(0 0% 15%);
+  --muted-foreground: hsl(0 0% 65%);
+  
+  --accent: hsl(330 50% 20%); /* Darker pink accent */
+  --accent-foreground: hsl(330 85% 75%);
+  
+  --destructive: hsl(0 72% 55%); /* Adjusted red for dark mode */
+  --destructive-foreground: hsl(0 0% 98%);
+  
+  --border: hsl(0 0% 20%);
+  --input: hsl(0 0% 20%);
+  --ring: hsl(330 85% 65%);
+
+  /* Primary Colors (Pink) - Adjusted for dark mode */
+  --primary-50: #2D0A1A;
+  --primary-100: #3D0F24;
+  --primary-200: #5A1A35;
+  --primary-300: #7A2548;
+  --primary-400: #A0335F;
+  --primary-500: #C94D7A; /* Adjusted main brand pink */
+  --primary-600: #E66B95;
+  --primary-700: #FF8DB3;
+  --primary-800: #FFB3D1;
+  --primary-900: #FFD9E8;
+
+  /* Secondary Colors (Purple) - Adjusted for dark mode */
+  --secondary-50: #1A0A26;
+  --secondary-100: #2A1438;
+  --secondary-200: #3D1F4D;
+  --secondary-300: #552D66;
+  --secondary-400: #6D3A7F;
+  --secondary-500: #854A99; /* Adjusted purple */
+  --secondary-600: #9D5AB3;
+  --secondary-700: #B56ACD;
+  --secondary-800: #CD7AE7;
+  --secondary-900: #E58AFF;
+
+  /* Neutral Colors - Inverted for dark mode */
+  --neutral-50: #0A0A0A;
+  --neutral-100: #141414;
+  --neutral-200: #1F1F1F;
+  --neutral-300: #2A2A2A;
+  --neutral-400: #3A3A3A;
+  --neutral-500: #4A4A4A;
+  --neutral-600: #6A6A6A;
+  --neutral-700: #8A8A8A;
+  --neutral-800: #B0B0B0;
+  --neutral-900: #E0E0E0;
+
+  /* Semantic Colors - Adjusted for dark mode visibility */
+  --success: #4CAF50;
+  --success-light: #1B5E20;
+  --success-dark: #81C784;
+  --warning: #FFB74D;
+  --warning-light: #E65100;
+  --warning-dark: #FFD54F;
+  --error: #EF5350;
+  --error-light: #B71C1C;
+  --error-dark: #FFCDD2;
+  --info: #42A5F5;
+  --info-light: #0D47A1;
+  --info-dark: #90CAF9;
+}
+
 @theme inline {
   /* shadcn/ui Theme Colors */
   --color-background: var(--background);
@@ -197,11 +278,9 @@
   --gradient-text: linear-gradient(135deg, #7B1FA2 0%, #FF1B8D 100%);
 }
 
-/* Dark mode disabled - using light theme only */
-
 body {
-  background: var(--neutral-50);
-  color: var(--neutral-900);
+  background: var(--background);
+  color: var(--foreground);
   font-family: var(--font-sans);
 }
 
@@ -624,7 +703,7 @@ body {
 }
 
 .comparison-cell:hover {
-  @apply bg-neutral-50;
+  @apply bg-muted;
 }
 
 .highlight-best {
@@ -640,7 +719,51 @@ body {
 }
 
 .highlight-neutral {
-  @apply bg-white text-neutral-900;
+  @apply bg-card text-card-foreground;
+}
+
+/* Video Player Animations */
+@keyframes videoFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes videoPlayButtonPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  }
+}
+
+.animate-video-fade-in {
+  animation: videoFadeIn 300ms ease-out;
+}
+
+.animate-play-button-pulse {
+  animation: videoPlayButtonPulse 2s ease-in-out infinite;
+}
+
+/* Video Reel Aspect Ratio (9:16 for Instagram/TikTok) */
+.aspect-reel {
+  aspect-ratio: 9 / 16;
+}
+
+/* Toggle Switch Styles */
+.toggle-switch {
+  @apply relative w-11 h-6 bg-neutral-300 rounded-full;
+  @apply peer-checked:bg-primary-500;
+  @apply after:absolute after:top-[2px] after:left-[2px];
+  @apply after:bg-white after:border-neutral-300 after:border after:rounded-full;
+  @apply after:h-5 after:w-5 after:transition-all;
+  @apply peer-checked:after:translate-x-full peer-checked:after:border-white;
 }
 
 /* Reduce Motion */

@@ -698,7 +698,7 @@ def get_tool_definition():
         "type": "function",
         "function": {
             "name": "generate_social_posts",
-            "description": "Generate Instagram single-image social media posts for a property using brand identity, images, and property data. Creates AI-generated captions, hashtags, CTAs, and visual mockups. Posts are saved to the database.",
+            "description": "Generate Instagram single-image social media posts for a property using brand identity, images, and property data. Creates AI-generated captions, hashtags, CTAs, and visual mockups. Posts are saved to the database. Optionally generates video reels for each post.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -718,6 +718,11 @@ def get_tool_definition():
                             "enum": ["lifestyle", "amenities", "floor_plans", "special_offers", "reviews", "location"]
                         },
                         "description": "Optional list of specific themes to cover. If not provided, uses all available themes."
+                    },
+                    "generate_videos": {
+                        "type": "boolean",
+                        "description": "Whether to generate video reels for each post using Google Gemini Veo. Falls back to static mockup if video generation fails.",
+                        "default": False
                     }
                 },
                 "required": ["property_id"]
@@ -726,24 +731,75 @@ def get_tool_definition():
     }
 
 
+def generate_video_for_post(
+    property_id: str,
+    image_url: str,
+    theme: str,
+    caption: str
+) -> Dict[str, Any]:
+    """
+    Generate a video reel for a social post.
+
+    Args:
+        property_id: Property ID
+        image_url: URL of the source image
+        theme: Post theme
+        caption: Post caption for context
+
+    Returns:
+        Dictionary with video generation result
+    """
+    try:
+        from agno_tools.generate_video_reel_tool import generate_video_reel
+
+        result = generate_video_reel(
+            property_id=property_id,
+            post_theme=theme,
+            image_url=image_url,
+            caption=caption,
+            save_to_db=False
+        )
+
+        return result
+
+    except ImportError as e:
+        print(f"  Warning: Video generation module not available: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "video_url": None,
+            "fallback_used": True
+        }
+    except Exception as e:
+        print(f"  Warning: Video generation failed: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "video_url": None,
+            "fallback_used": True
+        }
+
+
 def execute(arguments):
     """
     Execute the generate_social_posts tool.
-    
+
     Generates Instagram posts for a property using brand identity, images, and property data.
-    
+
     Args:
         arguments: Dictionary containing tool arguments
             - property_id (str, required): Property ID
             - post_count (int, optional): Number of posts (default: 8)
             - themes (list, optional): Specific themes to use
-            
+            - generate_videos (bool, optional): Whether to generate video reels (default: False)
+
     Returns:
         Dictionary with generated posts and summary
     """
     property_id = arguments.get("property_id")
     post_count = arguments.get("post_count", 8)
     themes = arguments.get("themes")
+    generate_videos = arguments.get("generate_videos", False)
     
     if not property_id:
         return {
@@ -755,6 +811,8 @@ def execute(arguments):
     post_count = max(5, min(10, post_count))
     
     print(f"Generating {post_count} social media posts for property {property_id}")
+    if generate_videos:
+        print("  Video generation ENABLED - will generate video reels for each post")
     
     try:
         # Initialize clients
@@ -929,7 +987,36 @@ def execute(arguments):
             if mockup_result:
                 # For now, store relative path. In production, upload to cloud storage
                 mockup_url = f"mockups/{mockup_filename}"
-            
+
+            # Generate video reel if requested
+            video_url = None
+            video_metadata = None
+            is_video = False
+
+            if generate_videos:
+                print(f"  Generating video reel...")
+                video_result = generate_video_for_post(
+                    property_id=property_id,
+                    image_url=selected_image["image_url"],
+                    theme=theme,
+                    caption=caption
+                )
+
+                if video_result.get("success"):
+                    video_url = video_result.get("video_url")
+                    is_video = True
+                    video_metadata = {
+                        "generation_time_seconds": video_result.get("generation_time_seconds"),
+                        "estimated_cost": video_result.get("estimated_cost"),
+                        "model": video_result.get("model"),
+                        "duration_seconds": video_result.get("duration_seconds"),
+                        "resolution": video_result.get("resolution"),
+                        "aspect_ratio": video_result.get("aspect_ratio")
+                    }
+                    print(f"  Video generated: {video_url}")
+                else:
+                    print(f"  Video generation failed, using static mockup: {video_result.get('error')}")
+
             # Create structured data
             structured_data = {
                 "theme": theme,
@@ -942,14 +1029,17 @@ def execute(arguments):
                 "hashtags": hashtags,
                 "cta": cta,
                 "platform": "instagram",
-                "post_type": "single_image"
+                "post_type": "video_reel" if is_video else "single_image"
             }
-            
+
+            if video_metadata:
+                structured_data["video_metadata"] = video_metadata
+
             # Save to database
             social_post = PropertySocialPost(
                 property_id=property_id,
                 platform="instagram",
-                post_type="single_image",
+                post_type="video_reel" if is_video else "single_image",
                 theme=theme,
                 image_url=selected_image["image_url"],
                 caption=caption,
@@ -957,14 +1047,17 @@ def execute(arguments):
                 cta=cta,
                 ready_to_post_text=ready_to_post,
                 mockup_image_url=mockup_url,
+                video_url=video_url,
+                is_video=is_video,
+                video_metadata=video_metadata,
                 structured_data=structured_data
             )
-            
+
             post_id = property_repo.create_social_post(social_post)
-            
+
             if post_id:
-                print(f"✓ Post {i+1} created (ID: {post_id})")
-                generated_posts.append({
+                print(f"Post {i+1} created (ID: {post_id})")
+                post_data = {
                     "id": post_id,
                     "theme": theme,
                     "image_url": selected_image["image_url"],
@@ -972,10 +1065,15 @@ def execute(arguments):
                     "hashtags": hashtags,
                     "cta": cta,
                     "ready_to_post_text": ready_to_post,
-                    "mockup_image_url": mockup_url
-                })
+                    "mockup_image_url": mockup_url,
+                    "is_video": is_video
+                }
+                if video_url:
+                    post_data["video_url"] = video_url
+                    post_data["video_metadata"] = video_metadata
+                generated_posts.append(post_data)
             else:
-                print(f"⚠ Warning: Failed to save post {i+1} to database")
+                print(f"Warning: Failed to save post {i+1} to database")
         
         print(f"\n✅ Successfully generated {len(generated_posts)} posts")
         

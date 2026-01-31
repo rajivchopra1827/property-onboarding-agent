@@ -32,15 +32,15 @@ export default function ComparisonPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-50">
-        <div className="text-lg text-neutral-800">Loading comparison...</div>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-lg text-foreground">Loading comparison...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-50">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-lg text-error">{error}</div>
       </div>
     );
@@ -48,29 +48,29 @@ export default function ComparisonPage() {
 
   if (data.length === 0) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-50">
-        <div className="text-lg text-neutral-800">No properties selected for comparison</div>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-lg text-foreground">No properties selected for comparison</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-background">
       {/* Page Header */}
       <div className="container mx-auto px-6 py-8 max-w-7xl">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-secondary-700 mb-2 font-display">
+            <h1 className="text-4xl font-bold text-secondary-700 dark:text-secondary-300 mb-2 font-display">
               Property Comparison
             </h1>
-            <p className="text-lg text-neutral-800">
+            <p className="text-lg text-foreground">
               Comparing {data.length} properties
             </p>
           </div>
           <div className="flex gap-4">
             <Link
               href="/properties"
-              className="px-4 py-2 text-neutral-700 border border-neutral-300 rounded-lg hover:bg-neutral-100 transition-colors"
+              className="px-4 py-2 text-foreground border border-border rounded-lg hover:bg-accent transition-colors"
             >
               ← Back to List
             </Link>

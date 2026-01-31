@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/ca
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
+import EmptyState from './EmptyState';
 
 // #region agent log
 const DEBUG_LOG_PATH = '/Users/rajivchopra/Property Onboarding Agent/.cursor/debug-layout.log';
@@ -361,7 +362,7 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
             className={`w-5 h-5 ${
               star <= roundedRating
                 ? 'text-yellow-400 fill-current'
-                : 'text-neutral-300'
+                : 'text-muted-foreground'
             }`}
             fill="currentColor"
             viewBox="0 0 20 20"
@@ -381,7 +382,7 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
       <button
         onClick={(e) => toggleWatchlist(competitor, e)}
         disabled={isLoading}
-        className="p-2 hover:bg-neutral-100 rounded transition-colors disabled:opacity-50 -m-2"
+        className="p-2 hover:bg-muted rounded transition-colors disabled:opacity-50 -m-2"
         title={isWatched ? 'Remove from watchlist' : 'Add to watchlist'}
       >
         {isWatched ? (
@@ -394,7 +395,7 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
           </svg>
         ) : (
           <svg
-            className="w-5 h-5 text-neutral-400 hover:text-yellow-400 transition-colors"
+            className="w-5 h-5 text-muted-foreground hover:text-yellow-400 transition-colors"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -517,14 +518,14 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
           <h3 className="text-xl font-bold text-secondary-700 mb-2 font-display">
             {title}
           </h3>
-          <p className="text-sm text-neutral-600 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             {subtitle}
           </p>
-          <Card className="shadow-sm bg-neutral-50">
+          <Card className="shadow-sm bg-muted">
             <CardContent className="p-8 text-center">
             <div className="max-w-md mx-auto">
               <svg
-                className="w-12 h-12 text-neutral-400 mx-auto mb-4"
+                className="w-12 h-12 text-muted-foreground mx-auto mb-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -542,10 +543,10 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
                   d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                 />
               </svg>
-              <p className="text-neutral-600 mb-2 font-medium">
+              <p className="text-muted-foreground mb-2 font-medium">
                 No competitors found within 1.5 miles
               </p>
-              <p className="text-sm text-neutral-500">
+              <p className="text-sm text-muted-foreground">
                 Try checking the Top Competitors section for highly-rated properties within 5 miles.
               </p>
             </div>
@@ -657,7 +658,7 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
             </h3>
             <p 
               ref={title === 'Top Competitors' ? topCompetitorsSubtitleRef : null}
-              className="text-sm text-neutral-600 mt-1"
+              className="text-sm text-muted-foreground mt-1"
             >
               {subtitle}
             </p>
@@ -681,27 +682,27 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
         >
           <table className="w-full">
             <thead>
-              <tr className="border-b border-neutral-200 bg-neutral-50">
+              <tr className="border-b border-border bg-muted">
                 {showWatchlistStar && (
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-800 uppercase tracking-wide w-12">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-foreground uppercase tracking-wide w-12">
                   </th>
                 )}
-                <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-800 uppercase tracking-wide">
+                <th className="text-left py-3 px-4 text-sm font-semibold text-foreground uppercase tracking-wide">
                   Name
                 </th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-800 uppercase tracking-wide">
+                <th className="text-left py-3 px-4 text-sm font-semibold text-foreground uppercase tracking-wide">
                   Rating
                 </th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-800 uppercase tracking-wide">
+                <th className="text-left py-3 px-4 text-sm font-semibold text-foreground uppercase tracking-wide">
                   Reviews
                 </th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-800 uppercase tracking-wide">
+                <th className="text-left py-3 px-4 text-sm font-semibold text-foreground uppercase tracking-wide">
                   Distance
                 </th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-800 uppercase tracking-wide">
+                <th className="text-left py-3 px-4 text-sm font-semibold text-foreground uppercase tracking-wide">
                   Address
                 </th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-800 uppercase tracking-wide w-24">
+                <th className="text-left py-3 px-4 text-sm font-semibold text-foreground uppercase tracking-wide w-24">
                   Links
                 </th>
               </tr>
@@ -714,7 +715,7 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
                 return (
                   <tr
                     key={competitor.id}
-                    className="border-b border-neutral-100 transition-all"
+                    className="border-b border-border transition-all"
                   >
                     {showWatchlistStar && (
                       <td className="py-4 px-4">
@@ -724,7 +725,7 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
                     {/* Name Column */}
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-neutral-900">
+                        <span className="font-semibold text-foreground">
                           {competitor.competitor_name}
                         </span>
                       </div>
@@ -749,7 +750,7 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
                           {competitor.review_count.toLocaleString()}
                         </span>
                       ) : (
-                        <span className="text-sm text-neutral-400">—</span>
+                        <span className="text-sm text-muted-foreground">—</span>
                       )}
                     </td>
 
@@ -773,7 +774,7 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
                         {googleMapsUrl && (
                           <button
                             onClick={(e) => handleGoogleMapsClick(competitor, e)}
-                            className="p-1.5 hover:bg-neutral-100 rounded transition-colors text-neutral-600 hover:text-neutral-900 cursor-pointer"
+                            className="p-1.5 hover:bg-muted rounded transition-colors text-muted-foreground hover:text-foreground cursor-pointer"
                             title="Google Maps"
                           >
                             <svg
@@ -800,7 +801,7 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
                         {hasWebsite && (
                           <button
                             onClick={(e) => handleWebsiteClick(competitor, e)}
-                            className="p-1.5 hover:bg-neutral-100 rounded transition-colors text-neutral-600 hover:text-neutral-900 cursor-pointer"
+                            className="p-1.5 hover:bg-muted rounded transition-colors text-muted-foreground hover:text-foreground cursor-pointer"
                             title="Website"
                           >
                             <svg
@@ -819,7 +820,7 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
                           </button>
                         )}
                         {!googleMapsUrl && !hasWebsite && (
-                          <span className="text-sm text-neutral-400">—</span>
+                          <span className="text-sm text-muted-foreground">—</span>
                         )}
                       </div>
                     </td>
@@ -875,7 +876,7 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
               <p className="text-lg font-semibold text-neutral-700">
                 Generating Competitor Data
               </p>
-              <p className="text-sm text-neutral-500">
+              <p className="text-sm text-muted-foreground">
                 Finding nearby properties and analyzing competitors...
               </p>
               <div className="flex items-center justify-center gap-2 mt-4">
@@ -887,7 +888,7 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
           </div>
         ) : (
           // Initial loading state
-          <div className="text-center text-neutral-600">Loading competitors...</div>
+          <div className="text-center text-muted-foreground">Loading competitors...</div>
         )}
         </CardContent>
       </Card>
@@ -906,83 +907,78 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
 
       {/* Empty State - Show when no competitors exist in any category */}
       {allTopCompetitors.length === 0 && allClosestCompetitors.length === 0 && watchedCompetitors.length === 0 ? (
-        <Card className="shadow-sm bg-neutral-50">
-          <CardContent className="p-8 text-center">
-            <div className="max-w-md mx-auto">
-            {isGeneratingCompetitors ? (
-              // Loading State
-              <div className="py-8">
-                <div className="relative w-24 h-24 mx-auto mb-6">
-                  {/* Animated Map Pin */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <MapPin className="w-16 h-16 text-primary-500 animate-pulse" strokeWidth={1.5} />
+        <>
+          {isGeneratingCompetitors ? (
+            // Loading State
+            <Card className="shadow-sm bg-muted">
+              <CardContent className="p-8 text-center">
+                <div className="max-w-md mx-auto">
+                  <div className="py-8">
+                    <div className="relative w-24 h-24 mx-auto mb-6">
+                      {/* Animated Map Pin */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <MapPin className="w-16 h-16 text-primary-500 animate-pulse" strokeWidth={1.5} />
+                      </div>
+                      {/* Spinning Ring */}
+                      <svg
+                        className="absolute inset-0 w-24 h-24 transform -rotate-90 animate-spin"
+                        viewBox="0 0 100 100"
+                      >
+                        <circle
+                          cx="50"
+                          cy="50"
+                          r="45"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          strokeLinecap="round"
+                          strokeDasharray="283"
+                          strokeDashoffset="70"
+                          className="text-primary-500"
+                        />
+                      </svg>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-lg font-semibold text-foreground">
+                        Generating Competitor Data
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Finding nearby properties and analyzing competitors...
+                      </p>
+                      <div className="flex items-center justify-center gap-2 mt-4">
+                        <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse" style={{ animationDelay: '0s' }}></div>
+                        <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                        <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                      </div>
+                    </div>
                   </div>
-                  {/* Spinning Ring */}
-                  <svg
-                    className="absolute inset-0 w-24 h-24 transform -rotate-90 animate-spin"
-                    viewBox="0 0 100 100"
-                  >
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="45"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                      strokeLinecap="round"
-                      strokeDasharray="283"
-                      strokeDashoffset="70"
-                      className="text-primary-500"
-                    />
-                  </svg>
                 </div>
-                <div className="space-y-2">
-                  <p className="text-lg font-semibold text-neutral-700">
-                    Generating Competitor Data
-                  </p>
-                  <p className="text-sm text-neutral-500">
-                    Finding nearby properties and analyzing competitors...
-                  </p>
-                  <div className="flex items-center justify-center gap-2 mt-4">
-                    <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse" style={{ animationDelay: '0s' }}></div>
-                    <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                    <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                  </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              <EmptyState
+                icon={MapPin}
+                title="No competitors collected yet"
+                description="Competitor information including nearby properties, ratings, and reviews will appear here once collected."
+                actionLabel="Generate Competitor Data"
+                onAction={handleGenerateCompetitors}
+                disabled={isGeneratingCompetitors}
+                actionIcon={<MapPin className="w-5 h-5" strokeWidth={2} />}
+              />
+              {generationSuccess && (
+                <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg shadow-sm">
+                  <p className="text-sm text-green-700 dark:text-green-300">{generationSuccess}</p>
                 </div>
-              </div>
-            ) : (
-              // Default Empty State
-              <>
-                <MapPin className="w-12 h-12 text-neutral-400 mx-auto mb-4" strokeWidth={1.5} />
-                <p className="text-neutral-600 mb-2 font-medium">
-                  No competitors collected yet
-                </p>
-                <p className="text-sm text-neutral-500 mb-6">
-                  Competitor information including nearby properties, ratings, and reviews will appear here once collected.
-                </p>
-                {generationSuccess && (
-                  <div className="mb-4 p-3 bg-green-50 rounded-lg shadow-sm">
-                    <p className="text-sm text-green-700">{generationSuccess}</p>
-                  </div>
-                )}
-                {generationError && (
-                  <div className="mb-4 p-3 bg-red-50 rounded-lg shadow-sm">
-                    <p className="text-sm text-red-700">{generationError}</p>
-                  </div>
-                )}
-                <button
-                  onClick={handleGenerateCompetitors}
-                  disabled={isGeneratingCompetitors}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-primary-300"
-                >
-                  <MapPin className="w-5 h-5" strokeWidth={2} />
-                  Generate Competitor Data
-                </button>
-              </>
-            )}
-            </div>
-          </CardContent>
-        </Card>
+              )}
+              {generationError && (
+                <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg shadow-sm">
+                  <p className="text-sm text-red-700 dark:text-red-300">{generationError}</p>
+                </div>
+              )}
+            </>
+          )}
+        </>
       ) : (
         <>
 
@@ -1002,14 +998,14 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
           <h3 className="text-xl font-bold text-secondary-700 mb-2 font-display">
             Watchlist
           </h3>
-          <p className="text-sm text-neutral-600 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Save competitors you want to track
           </p>
-          <Card className="shadow-sm bg-neutral-50">
+          <Card className="shadow-sm bg-muted">
             <CardContent className="p-8 text-center">
             <div className="max-w-md mx-auto">
               <svg
-                className="w-12 h-12 text-neutral-400 mx-auto mb-4"
+                className="w-12 h-12 text-muted-foreground mx-auto mb-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -1021,10 +1017,10 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
                   d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
                 />
               </svg>
-              <p className="text-neutral-600 mb-2 font-medium">
+              <p className="text-muted-foreground mb-2 font-medium">
                 Your watchlist is empty
               </p>
-              <p className="text-sm text-neutral-500">
+              <p className="text-sm text-muted-foreground">
                 Click the star icon next to any competitor below to add them to your watchlist for easy tracking.
               </p>
             </div>
