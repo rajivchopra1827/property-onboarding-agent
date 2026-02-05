@@ -16,7 +16,7 @@ export default function ExtractionLoadingState({
   }
 
   return (
-    <Card className="shadow-sm bg-gradient-to-br from-neutral-50 via-primary-50/30 to-secondary-50/30">
+    <Card className="shadow-sm bg-gradient-to-br from-neutral-50 via-primary-50/50 to-secondary-50/50">
       <CardContent className="p-8 text-center">
         <div className="max-w-md mx-auto">
           {/* Main Loading Container */}
@@ -105,7 +105,7 @@ export default function ExtractionLoadingState({
               <div className="flex flex-col items-center gap-2">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">⏳</span>
-                  <span className="text-base font-semibold text-neutral-700">
+                  <span className="text-base font-semibold animate-shimmer">
                     Processing...
                   </span>
                 </div>

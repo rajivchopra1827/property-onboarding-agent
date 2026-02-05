@@ -18,6 +18,7 @@ import os
 import sys
 import json
 import warnings
+import time as time_module
 from contextlib import redirect_stdout
 from pathlib import Path
 from dotenv import load_dotenv
@@ -94,19 +95,53 @@ def generate_videos_for_images(property_id: str, image_ids: list, theme: str):
         try:
             # Generate video (redirect stdout to stderr to keep stdout clean for JSON)
             log_progress(f"Generating video for image {image_id}...")
-            with redirect_stdout(sys.stderr):
-                video_result = generate_video_reel(
-                    property_id=property_id,
-                    post_theme=theme,
-                    image_id=image_id,
-                    save_to_db=False  # We'll create the post ourselves
-                )
             
-            if not video_result.get("success"):
+            # #region agent log
+            try:
+                with open('/Users/rajivchopra/Development/Projects/Property Onboarding Agent/.cursor/debug.log', 'a') as f:
+                    f.write(json.dumps({"location":"generate_videos_api.py:97","message":"Starting video generation","data":{"image_id":image_id,"theme":theme},"timestamp":int(time_module.time()*1000),"sessionId":"debug-session","runId":"run1","hypothesisId":"G"}) + "\n")
+            except: pass
+            # #endregion
+            
+            try:
+                with redirect_stdout(sys.stderr):
+                    video_result = generate_video_reel(
+                        property_id=property_id,
+                        post_theme=theme,
+                        image_id=image_id,
+                        save_to_db=False  # We'll create the post ourselves
+                    )
+            except Exception as gen_error:
+                # #region agent log
+                try:
+                    with open('/Users/rajivchopra/Development/Projects/Property Onboarding Agent/.cursor/debug.log', 'a') as f:
+                        f.write(json.dumps({"location":"generate_videos_api.py:107","message":"Exception during video generation","data":{"image_id":image_id,"errorType":type(gen_error).__name__,"errorMessage":str(gen_error)[:500]},"timestamp":int(time_module.time()*1000),"sessionId":"debug-session","runId":"run1","hypothesisId":"I"}) + "\n")
+                except: pass
+                # #endregion
                 errors.append({
                     "image_id": image_id,
                     "image_url": image.image_url,
-                    "error": video_result.get("error", "Unknown error")
+                    "error": f"Exception during generation: {type(gen_error).__name__}: {str(gen_error)[:500]}"
+                })
+                continue
+            
+            # #region agent log
+            try:
+                with open('/Users/rajivchopra/Development/Projects/Property Onboarding Agent/.cursor/debug.log', 'a') as f:
+                    f.write(json.dumps({"location":"generate_videos_api.py:120","message":"Video generation result","data":{"image_id":image_id,"success":video_result.get("success") if video_result else None,"video_url":video_result.get("video_url") if video_result else None,"error":video_result.get("error") if video_result else "No result returned","resultKeys":list(video_result.keys()) if video_result else []},"timestamp":int(time_module.time()*1000),"sessionId":"debug-session","runId":"run1","hypothesisId":"G"}) + "\n")
+            except Exception as log_err:
+                try:
+                    with open('/Users/rajivchopra/Development/Projects/Property Onboarding Agent/.cursor/debug.log', 'a') as f:
+                        f.write(json.dumps({"location":"generate_videos_api.py:120","message":"Failed to log result","data":{"logError":str(log_err)},"timestamp":int(time_module.time()*1000),"sessionId":"debug-session","runId":"run1","hypothesisId":"G"}) + "\n")
+                except: pass
+            # #endregion
+            
+            if not video_result or not video_result.get("success"):
+                error_msg = video_result.get("error", "Unknown error") if video_result else "No result returned from generate_video_reel"
+                errors.append({
+                    "image_id": image_id,
+                    "image_url": image.image_url,
+                    "error": error_msg
                 })
                 continue
             
@@ -154,6 +189,13 @@ def generate_videos_for_images(property_id: str, image_ids: list, theme: str):
             
             post_id = property_repo.create_social_post(social_post)
             
+            # #region agent log
+            try:
+                with open('/Users/rajivchopra/Development/Projects/Property Onboarding Agent/.cursor/debug.log', 'a') as f:
+                    f.write(json.dumps({"location":"generate_videos_api.py:155","message":"Attempting to save video post","data":{"post_id":post_id,"image_id":image_id,"video_url":video_url,"is_video":True},"timestamp":int(time_module.time()*1000),"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}) + "\n")
+            except: pass
+            # #endregion
+            
             if post_id:
                 videos.append({
                     "post_id": post_id,
@@ -164,12 +206,26 @@ def generate_videos_for_images(property_id: str, image_ids: list, theme: str):
                     "video_metadata": video_metadata
                 })
                 log_progress(f"Created video post {post_id} for image {image_id}")
+                
+                # #region agent log
+                try:
+                    with open('/Users/rajivchopra/Development/Projects/Property Onboarding Agent/.cursor/debug.log', 'a') as f:
+                        f.write(json.dumps({"location":"generate_videos_api.py:162","message":"Video post saved successfully","data":{"post_id":post_id,"video_url":video_url},"timestamp":int(time_module.time()*1000),"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}) + "\n")
+                except: pass
+                # #endregion
             else:
                 errors.append({
                     "image_id": image_id,
                     "image_url": image.image_url,
                     "error": "Failed to save social post to database"
                 })
+                
+                # #region agent log
+                try:
+                    with open('/Users/rajivchopra/Development/Projects/Property Onboarding Agent/.cursor/debug.log', 'a') as f:
+                        f.write(json.dumps({"location":"generate_videos_api.py:175","message":"Failed to save video post","data":{"image_id":image_id,"video_url":video_url},"timestamp":int(time_module.time()*1000),"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}) + "\n")
+                except: pass
+                # #endregion
                 
         except Exception as e:
             errors.append({
@@ -238,6 +294,13 @@ def main():
         
         # Generate videos
         result = generate_videos_for_images(property_id, image_ids, theme)
+        
+        # #region agent log
+        try:
+            with open('/Users/rajivchopra/Development/Projects/Property Onboarding Agent/.cursor/debug.log', 'a') as f:
+                f.write(json.dumps({"location":"generate_videos_api.py:240","message":"Video generation complete, preparing response","data":{"totalSucceeded":result.get("total_succeeded"),"totalFailed":result.get("total_failed"),"videosCount":len(result.get("videos",[])),"errorsCount":len(result.get("errors",[]))},"timestamp":int(time_module.time()*1000),"sessionId":"debug-session","runId":"run1","hypothesisId":"F"}) + "\n")
+        except: pass
+        # #endregion
         
         # Return result to stdout (only JSON output goes here)
         output = json.dumps({

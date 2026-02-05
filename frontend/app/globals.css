@@ -235,8 +235,8 @@
   --color-info-dark: var(--info-dark);
 
   /* Fonts */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-sans: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: var(--font-dm-sans), 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
   /* Spacing */
@@ -276,6 +276,8 @@
   --gradient-hero: linear-gradient(135deg, #4A148C 0%, #7B1FA2 50%, #9C27B0 100%);
   --gradient-subtle: linear-gradient(180deg, #FFFFFF 0%, #FFF0F7 100%);
   --gradient-text: linear-gradient(135deg, #7B1FA2 0%, #FF1B8D 100%);
+  --gradient-card-accent: linear-gradient(180deg, #FF1B8D 0%, #7B1FA2 100%);
+  --gradient-page-bg: linear-gradient(180deg, var(--primary-50) 0%, var(--background) 30%, var(--secondary-50) 100%);
 }
 
 body {
@@ -764,6 +766,120 @@ body {
   @apply after:bg-white after:border-neutral-300 after:border after:rounded-full;
   @apply after:h-5 after:w-5 after:transition-all;
   @apply peer-checked:after:translate-x-full peer-checked:after:border-white;
+}
+
+/* Background Texture Utilities */
+.bg-dot-pattern {
+  background-image: radial-gradient(circle, var(--neutral-300) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.dark .bg-dot-pattern {
+  background-image: radial-gradient(circle, var(--neutral-400) 0.5px, transparent 0.5px);
+  background-size: 24px 24px;
+}
+
+.bg-gradient-page {
+  background: var(--gradient-page-bg);
+}
+
+/* Card Accent Utilities */
+.card-gradient-border-left {
+  border-left: 4px solid transparent;
+  border-image: var(--gradient-primary) 1;
+}
+
+.card-gradient-header {
+  background: var(--gradient-primary);
+}
+
+/* Gradient Border Utility */
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: var(--gradient-primary);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Gradient Underline Utility */
+.gradient-underline {
+  position: relative;
+  display: inline-block;
+}
+
+.gradient-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 2px;
+  background: var(--gradient-primary);
+  border-radius: 1px;
+}
+
+/* Staggered Slide Up Animation */
+@keyframes staggerSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Badge Pop Animation */
+@keyframes badgePop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Shimmer Animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-stagger-slide-up {
+  animation: staggerSlideUp 0.5s ease-out both;
+}
+
+.animate-badge-pop {
+  animation: badgePop 0.3s ease-out both;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 0%, var(--primary-200) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Reduce Motion */

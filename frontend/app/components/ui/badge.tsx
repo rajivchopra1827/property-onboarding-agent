@@ -18,6 +18,7 @@ const badgeVariants = cva(
           "bg-background text-foreground shadow-sm [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         ghost: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         link: "text-primary underline-offset-4 [a&]:hover:underline",
+        gradient: "bg-[image:var(--gradient-primary)] text-white border-transparent",
       },
     },
     defaultVariants: {

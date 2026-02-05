@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { Property } from '@/lib/types';
+import { Building2 } from 'lucide-react';
 import AddPropertyForm from '@/app/components/AddPropertyForm';
 import { Card, CardContent } from '@/app/components/ui/card';
 import { Checkbox } from '@/app/components/ui/checkbox';
@@ -113,12 +114,12 @@ export default function PropertiesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-gradient-page bg-dot-pattern">
       <div className="container mx-auto px-6 py-8 max-w-7xl">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-4xl font-bold text-secondary-700 mb-2 font-display">
+              <h1 className="text-4xl font-bold text-gradient mb-2 font-display">
                 Properties
               </h1>
               <p className="text-lg text-neutral-800 leading-relaxed">
@@ -127,7 +128,8 @@ export default function PropertiesPage() {
             </div>
             <Button
               onClick={() => setShowAddForm(true)}
-              className="h-12 shadow-primary hover:shadow-primary-lg hover:-translate-y-0.5 active:translate-y-0"
+              variant="gradient"
+              className="h-12 hover:-translate-y-0.5 active:translate-y-0"
             >
               + Add New Property
             </Button>
@@ -184,25 +186,36 @@ export default function PropertiesPage() {
 
         {properties.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-lg text-neutral-800">
-              No properties found. Start by extracting information from a property website.
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary-100 to-secondary-100 flex items-center justify-center">
+              <Building2 className="w-8 h-8 text-primary-500 animate-float" strokeWidth={1.5} />
+            </div>
+            <p className="text-lg text-neutral-800 font-display">
+              No properties found
+            </p>
+            <p className="text-sm text-neutral-600 mt-2">
+              Start by extracting information from a property website.
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {properties.map((property) => {
+            {properties.map((property, index) => {
               const isSelected = selectedPropertyIds.includes(property.id);
 
               return (
                 <Card
                   key={property.id}
                   className={`
-                    transition-all duration-300 cursor-pointer
+                    transition-all duration-300 cursor-pointer overflow-hidden animate-stagger-slide-up
                     ${isSelected
                       ? 'shadow-primary ring-2 ring-primary-200'
-                      : 'hover:shadow-lg hover:-translate-y-1'
+                      : 'hover:shadow-lg hover:-translate-y-1 hover:ring-2 hover:ring-primary-200/50'
                     }
                   `}
+                  style={{
+                    animationDelay: `${index * 80}ms`,
+                    borderTop: '3px solid transparent',
+                    borderImage: 'linear-gradient(135deg, #FF1B8D 0%, #7B1FA2 100%) 1',
+                  }}
                   onClick={() => {
                     if (compareMode) {
                       handlePropertySelect(property.id, !isSelected);
@@ -228,9 +241,9 @@ export default function PropertiesPage() {
                               e.preventDefault();
                             }
                           }}
-                          className="block"
+                          className="block group"
                         >
-                          <h2 className="text-xl font-semibold text-neutral-900 mb-2">
+                          <h2 className="text-xl font-semibold text-neutral-900 mb-2 font-display">
                             {getDisplayName(property)}
                           </h2>
                           {getAddress(property) && (
@@ -244,8 +257,8 @@ export default function PropertiesPage() {
                             </p>
                           )}
                           {!compareMode && (
-                            <div className="mt-4 text-sm text-primary-500 font-medium">
-                              View Details →
+                            <div className="mt-4 text-sm text-gradient font-semibold flex items-center gap-1">
+                              View Details <span className="inline-block transition-transform group-hover:translate-x-1">&rarr;</span>
                             </div>
                           )}
                           {compareMode && isSelected && (
@@ -274,7 +287,7 @@ export default function PropertiesPage() {
                 const queryString = selectedPropertyIds.join(',');
                 window.location.href = `/properties/compare?ids=${queryString}`;
               }}
-              className="flex items-center gap-3 bg-primary-500 text-white font-semibold px-6 py-4 rounded-lg shadow-lg hover:bg-primary-600 hover:shadow-xl transition-all duration-200 hover:-translate-y-1 focus:outline-none focus:ring-4 focus:ring-primary-300"
+              className="flex items-center gap-3 bg-[image:var(--gradient-primary)] text-white font-semibold px-6 py-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1 animate-pulse-glow focus:outline-none focus:ring-4 focus:ring-primary-300"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />

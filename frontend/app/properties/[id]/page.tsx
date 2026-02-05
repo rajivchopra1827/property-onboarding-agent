@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Building2, Image as ImageIcon, Palette, Star, Layout, Tag, MessageSquare, MapPin, Gift } from 'lucide-react';
+import { Building2, Image as ImageIcon, Palette, Star, Layout, Tag, MessageSquare, MapPin, Gift, BedDouble, Ruler } from 'lucide-react';
 import { Badge } from '@/app/components/ui/badge';
 import { Card, CardContent } from '@/app/components/ui/card';
 import { supabase } from '@/lib/supabase';
@@ -17,6 +17,7 @@ import ImageGallery from '@/app/components/ImageGallery';
 import ExtractionLoadingState from '@/app/components/ExtractionLoadingState';
 import StatusMessage from '@/app/components/StatusMessage';
 import EmptyState from '@/app/components/EmptyState';
+import PropertyHero from '@/app/components/PropertyHero';
 import { useExtractionState } from '@/app/hooks/useExtractionState';
 import { getPrimaryTag, getCategoryDisplayName, getCategorySortOrder, sortCategoriesByOrder } from '@/lib/imageCategories';
 
@@ -691,7 +692,7 @@ export default function PropertyDetailPage() {
 
   if (error || !property) {
     return (
-      <div className="min-h-screen bg-neutral-50">
+      <div className="min-h-screen bg-gradient-page">
         <div className="container mx-auto px-6 py-8 max-w-7xl">
           <Link
             href="/properties"
@@ -890,36 +891,19 @@ export default function PropertyDetailPage() {
   );
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-gradient-page">
       <div className="container mx-auto px-6 py-8 max-w-7xl">
-        <Link
-          href="/properties"
-          className="text-primary-500 hover:text-primary-600 hover:underline mb-6 inline-block transition-colors focus:outline-none focus:ring-4 focus:ring-primary-300 rounded-lg px-2 py-1"
-        >
-          ← Back to Properties
-        </Link>
-
-        <div className="flex items-center gap-4 mb-6">
-          {branding && branding.branding_data && branding.branding_data.logo && (
-            <img
-              src={branding.branding_data.logo}
-              alt="Property logo"
-              className="h-16 w-auto object-contain"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-              }}
-            />
-          )}
-          <h1 className="text-4xl font-bold text-secondary-700 font-display">
-            {property.property_name || 'Unnamed Property'}
-          </h1>
-        </div>
+        <PropertyHero
+          property={property}
+          branding={branding}
+          images={availableImages}
+          address={address}
+        />
 
         <div className="space-y-6">
           {/* Basic Information Card */}
-          <Card className="p-8 shadow-md transition-all duration-300 hover:shadow-lg">
-            <h2 className="text-2xl font-bold text-secondary-700 mb-4 font-display flex items-center gap-2">
+          <Card className="p-8 shadow-md transition-all duration-300 hover:shadow-lg card-gradient-border-left animate-stagger-slide-up" style={{ animationDelay: '0ms' }}>
+            <h2 className="text-2xl font-bold text-gradient mb-4 font-display flex items-center gap-2">
               <Building2 className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
               Basic Information
             </h2>
@@ -1081,122 +1065,165 @@ export default function PropertyDetailPage() {
           </Card>
 
           {/* Floor Plans Card */}
-          <Card className="p-8 shadow-md transition-all duration-300 hover:shadow-lg">
-            <h2 className="text-2xl font-bold text-secondary-700 mb-4 font-display flex items-center gap-2">
+          <Card className="p-8 shadow-md transition-all duration-300 hover:shadow-lg animate-stagger-slide-up" style={{ animationDelay: '100ms' }}>
+            <h2 className="text-2xl font-bold text-gradient mb-4 font-display flex items-center gap-2">
               <Layout className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
               Floor Plans
             </h2>
             {floorPlans.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-neutral-200">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-800 uppercase tracking-wide">
-                        Name
-                      </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-800 uppercase tracking-wide">
-                        Size
-                      </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-800 uppercase tracking-wide">
-                        Bed/Bath
-                      </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-800 uppercase tracking-wide">
-                        Price
-                      </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-800 uppercase tracking-wide">
-                        Availability
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {floorPlans.map((floorPlan) => {
-                      // Format bathrooms (handle half baths)
-                      const formatBathrooms = (baths: number | null) => {
-                        if (baths === null) return null;
-                        if (baths % 1 === 0) return `${baths}BA`;
-                        return `${baths}BA`;
-                      };
+              floorPlans.length <= 5 ? (
+                /* Card grid for small counts */
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {floorPlans.map((floorPlan) => {
+                    const bedStr = floorPlan.bedrooms !== null ? `${floorPlan.bedrooms} Bed` : null;
+                    const bathStr = floorPlan.bathrooms !== null ? `${floorPlan.bathrooms} Bath` : null;
+                    const bedBathStr = [bedStr, bathStr].filter(Boolean).join(' / ');
 
-                      // Format bedrooms
-                      const formatBedrooms = (beds: number | null) => {
-                        if (beds === null) return null;
-                        return `${beds}BR`;
-                      };
-
-                      const bedStr = formatBedrooms(floorPlan.bedrooms);
-                      const bathStr = formatBathrooms(floorPlan.bathrooms);
-                      const bedBathStr = [bedStr, bathStr].filter(Boolean).join(' / ');
-
-                      // Format availability
-                      let availabilityDisplay = null;
-                      if (floorPlan.available_units !== null) {
-                        availabilityDisplay = (
-                          <span className="text-sm text-success-dark font-medium">
-                            {floorPlan.available_units} {floorPlan.available_units === 1 ? 'unit' : 'units'}
-                          </span>
-                        );
-                      } else if (floorPlan.is_available !== null) {
-                        availabilityDisplay = (
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${
-                              floorPlan.is_available
-                                ? 'bg-success-light text-success-dark'
-                                : 'bg-error-light text-error-dark'
-                            }`}
-                          >
-                            {floorPlan.is_available ? 'Available' : 'Not Available'}
-                          </span>
-                        );
-                      }
-
-                      return (
-                        <tr
-                          key={floorPlan.id}
-                          className="border-b border-neutral-100 hover:bg-neutral-50 transition-colors"
-                        >
-                          <td className="py-4 px-4">
-                            <span className="text-lg font-semibold text-neutral-900">
-                              {floorPlan.name}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4">
-                            {floorPlan.size_sqft ? (
-                              <span className="text-sm text-neutral-700">
-                                {floorPlan.size_sqft.toLocaleString()} sqft
-                              </span>
-                            ) : (
-                              <span className="text-sm text-neutral-400">—</span>
-                            )}
-                          </td>
-                          <td className="py-4 px-4">
-                            {bedBathStr ? (
-                              <span className="text-sm text-neutral-700">
-                                {bedBathStr}
-                              </span>
-                            ) : (
-                              <span className="text-sm text-neutral-400">—</span>
-                            )}
-                          </td>
-                          <td className="py-4 px-4">
-                            {floorPlan.price_string ? (
-                              <span className="text-base font-semibold text-neutral-900">
-                                {floorPlan.price_string}
-                              </span>
-                            ) : (
-                              <span className="text-sm text-neutral-400">—</span>
-                            )}
-                          </td>
-                          <td className="py-4 px-4">
-                            {availabilityDisplay || (
-                              <span className="text-sm text-neutral-400">—</span>
-                            )}
-                          </td>
-                        </tr>
+                    let availabilityBadge = null;
+                    if (floorPlan.available_units !== null) {
+                      availabilityBadge = (
+                        <Badge variant="secondary" className="bg-success-light text-success-dark">
+                          {floorPlan.available_units} {floorPlan.available_units === 1 ? 'unit' : 'units'}
+                        </Badge>
                       );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                    } else if (floorPlan.is_available !== null) {
+                      availabilityBadge = (
+                        <Badge variant="secondary" className={floorPlan.is_available ? 'bg-success-light text-success-dark' : 'bg-error-light text-error-dark'}>
+                          {floorPlan.is_available ? 'Available' : 'Unavailable'}
+                        </Badge>
+                      );
+                    }
+
+                    return (
+                      <Card key={floorPlan.id} className="p-5 shadow-sm hover:shadow-md transition-all duration-200 border-t-[3px]" style={{ borderImage: 'linear-gradient(135deg, #FF1B8D 0%, #7B1FA2 100%) 1' }}>
+                        <h3 className="text-lg font-bold text-neutral-900 font-display mb-3">{floorPlan.name}</h3>
+                        {bedBathStr && (
+                          <div className="flex items-center gap-2 text-sm text-neutral-700 mb-2">
+                            <BedDouble className="w-4 h-4 text-primary-500" strokeWidth={1.5} />
+                            <span>{bedBathStr}</span>
+                          </div>
+                        )}
+                        {floorPlan.size_sqft && (
+                          <div className="flex items-center gap-2 text-sm text-neutral-700 mb-3">
+                            <Ruler className="w-4 h-4 text-primary-500" strokeWidth={1.5} />
+                            <span>{floorPlan.size_sqft.toLocaleString()} sqft</span>
+                          </div>
+                        )}
+                        {floorPlan.price_string && (
+                          <p className="text-xl font-bold text-gradient mb-3">{floorPlan.price_string}</p>
+                        )}
+                        {availabilityBadge && <div>{availabilityBadge}</div>}
+                      </Card>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* Table for larger counts */
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-[image:var(--gradient-primary)] text-white">
+                        <th className="text-left py-3 px-4 text-sm font-semibold uppercase tracking-wide">
+                          Name
+                        </th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold uppercase tracking-wide">
+                          Size
+                        </th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold uppercase tracking-wide">
+                          Bed/Bath
+                        </th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold uppercase tracking-wide">
+                          Price
+                        </th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold uppercase tracking-wide">
+                          Availability
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {floorPlans.map((floorPlan) => {
+                        const formatBathrooms = (baths: number | null) => {
+                          if (baths === null) return null;
+                          return `${baths}BA`;
+                        };
+                        const formatBedrooms = (beds: number | null) => {
+                          if (beds === null) return null;
+                          return `${beds}BR`;
+                        };
+                        const bedStr = formatBedrooms(floorPlan.bedrooms);
+                        const bathStr = formatBathrooms(floorPlan.bathrooms);
+                        const bedBathStr = [bedStr, bathStr].filter(Boolean).join(' / ');
+
+                        let availabilityDisplay = null;
+                        if (floorPlan.available_units !== null) {
+                          availabilityDisplay = (
+                            <span className="text-sm text-success-dark font-medium">
+                              {floorPlan.available_units} {floorPlan.available_units === 1 ? 'unit' : 'units'}
+                            </span>
+                          );
+                        } else if (floorPlan.is_available !== null) {
+                          availabilityDisplay = (
+                            <span
+                              className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${
+                                floorPlan.is_available
+                                  ? 'bg-success-light text-success-dark'
+                                  : 'bg-error-light text-error-dark'
+                              }`}
+                            >
+                              {floorPlan.is_available ? 'Available' : 'Not Available'}
+                            </span>
+                          );
+                        }
+
+                        return (
+                          <tr
+                            key={floorPlan.id}
+                            className="border-b border-neutral-100 even:bg-muted/50 hover:bg-neutral-50 transition-colors"
+                          >
+                            <td className="py-4 px-4">
+                              <span className="text-lg font-semibold text-neutral-900">
+                                {floorPlan.name}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4">
+                              {floorPlan.size_sqft ? (
+                                <span className="text-sm text-neutral-700">
+                                  {floorPlan.size_sqft.toLocaleString()} sqft
+                                </span>
+                              ) : (
+                                <span className="text-sm text-neutral-400">—</span>
+                              )}
+                            </td>
+                            <td className="py-4 px-4">
+                              {bedBathStr ? (
+                                <span className="text-sm text-neutral-700">
+                                  {bedBathStr}
+                                </span>
+                              ) : (
+                                <span className="text-sm text-neutral-400">—</span>
+                              )}
+                            </td>
+                            <td className="py-4 px-4">
+                              {floorPlan.price_string ? (
+                                <span className="text-base font-semibold text-neutral-900">
+                                  {floorPlan.price_string}
+                                </span>
+                              ) : (
+                                <span className="text-sm text-neutral-400">—</span>
+                              )}
+                            </td>
+                            <td className="py-4 px-4">
+                              {availabilityDisplay || (
+                                <span className="text-sm text-neutral-400">—</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )
             ) : (
               <>
                 {floorPlansExtraction.isLoading ? (
@@ -1250,8 +1277,8 @@ export default function PropertyDetailPage() {
           </Card>
 
           {/* Special Offers Card */}
-          <Card className="p-8 shadow-md transition-all duration-300 hover:shadow-lg">
-            <h2 className="text-2xl font-bold text-secondary-700 mb-4 font-display flex items-center gap-2">
+          <Card className="p-8 shadow-md transition-all duration-300 hover:shadow-lg bg-gradient-subtle animate-stagger-slide-up" style={{ animationDelay: '200ms' }}>
+            <h2 className="text-2xl font-bold text-gradient mb-4 font-display flex items-center gap-2">
               <Gift className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
               Special Offers
             </h2>
@@ -1278,11 +1305,12 @@ export default function PropertyDetailPage() {
                   return (
                     <Card
                       key={offer.id}
-                      className="p-6 bg-primary-50/50 hover:bg-primary-50 transition-colors shadow-sm"
+                      className="p-6 bg-primary-50 hover:bg-primary-100/50 transition-colors shadow-sm border-l-4 border-primary-400"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-secondary-700 mb-2">
+                          <h3 className="text-lg font-semibold text-secondary-700 mb-2 flex items-center gap-2">
+                            <Gift className="w-5 h-5 text-primary-500 shrink-0" />
                             {offer.offer_description}
                           </h3>
                           {offer.descriptive_text && (
@@ -1376,8 +1404,8 @@ export default function PropertyDetailPage() {
           </Card>
 
           {/* Brand Identity Card */}
-          <Card className="p-8 shadow-md transition-all duration-300 hover:shadow-lg">
-            <h2 className="text-2xl font-bold text-secondary-700 mb-4 font-display flex items-center gap-2">
+          <Card className="p-8 shadow-md transition-all duration-300 hover:shadow-lg animate-stagger-slide-up" style={{ animationDelay: '300ms' }}>
+            <h2 className="text-2xl font-bold text-gradient mb-4 font-display flex items-center gap-2">
               <Palette className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
               Brand Identity
             </h2>
@@ -1389,8 +1417,8 @@ export default function PropertyDetailPage() {
                     <p className="text-sm font-semibold text-neutral-700 mb-1 uppercase tracking-wide">
                       Tagline
                     </p>
-                    <p className="text-base text-neutral-900 italic leading-relaxed">
-                      {branding.branding_data.tagline}
+                    <p className="text-xl text-neutral-900 italic leading-relaxed font-display">
+                      &ldquo;{branding.branding_data.tagline}&rdquo;
                     </p>
                   </div>
                 )}
@@ -1417,8 +1445,8 @@ export default function PropertyDetailPage() {
                       {branding.branding_data.tone.tone_tags.map((tag, index) => (
                         <Badge
                           key={index}
-                          variant="secondary"
-                          className="bg-primary-100 text-primary-700 uppercase tracking-wide shadow-sm"
+                          variant="gradient"
+                          className="uppercase tracking-wide shadow-sm"
                         >
                           {tag}
                         </Badge>
@@ -1438,12 +1466,14 @@ export default function PropertyDetailPage() {
                         if (!colorValue || typeof colorValue !== 'string') return null;
                         
                         return (
-                          <div
-                            key={colorName}
-                            className="w-12 h-12 rounded-lg flex-shrink-0 shadow-sm"
-                            style={{ backgroundColor: colorValue }}
-                            title={colorValue}
-                          />
+                          <div key={colorName} className="flex flex-col items-center gap-1.5">
+                            <div
+                              className="w-16 h-16 rounded-lg flex-shrink-0 shadow-md ring-1 ring-neutral-200"
+                              style={{ backgroundColor: colorValue }}
+                              title={colorValue}
+                            />
+                            <span className="text-xs text-neutral-500 font-mono">{colorValue}</span>
+                          </div>
                         );
                       })}
                     </div>
@@ -1503,7 +1533,7 @@ export default function PropertyDetailPage() {
           </Card>
 
           {/* Images Card */}
-          <Card className="p-8 shadow-md transition-all duration-300 hover:shadow-lg">
+          <Card className="p-8 shadow-md transition-all duration-300 hover:shadow-lg animate-stagger-slide-up" style={{ animationDelay: '400ms' }}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-secondary-700 font-display flex items-center gap-2">
                 <ImageIcon className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
@@ -1609,7 +1639,7 @@ export default function PropertyDetailPage() {
                         
                         return (
                           <div key={category} className="space-y-4">
-                            <h3 className="text-xl font-semibold text-secondary-600 font-display flex items-center gap-2">
+                            <h3 className="text-xl font-semibold text-secondary-600 font-display flex items-center gap-2 gradient-underline pb-1">
                               {getCategoryDisplayName(category)}
                               <span className="text-sm font-normal text-neutral-500">
                                 ({categoryImages.length})
@@ -1628,7 +1658,7 @@ export default function PropertyDetailPage() {
                                   <img
                                     src={image.image_url}
                                     alt={image.alt_text || 'Property image'}
-                                    className="w-full h-full object-cover hover:opacity-90 transition-opacity"
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                     onError={(e) => {
                                       // Mark image as unavailable and hide it
                                       markImageAsUnavailable(image.id);
@@ -1761,32 +1791,33 @@ export default function PropertyDetailPage() {
           </Card>
 
           {/* Amenities Card */}
-          <Card className="p-8 shadow-md transition-all duration-300 hover:shadow-lg">
-            <h2 className="text-2xl font-bold text-secondary-700 mb-4 font-display flex items-center gap-2">
+          <Card className="p-8 shadow-md transition-all duration-300 hover:shadow-lg animate-stagger-slide-up" style={{ animationDelay: '500ms' }}>
+            <h2 className="text-2xl font-bold text-gradient mb-4 font-display flex items-center gap-2">
               <Star className="w-6 h-6 text-primary-500" strokeWidth={2.5} />
               Amenities
             </h2>
             {amenities && amenities.amenities_data ? (
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Building Amenities */}
                 <div>
-                  <h3 className="text-lg font-semibold text-neutral-900 mb-3">
+                  <h3 className="text-lg font-semibold text-neutral-900 mb-3 font-display">
                     Building
                   </h3>
                   {amenities.amenities_data.building_amenities && amenities.amenities_data.building_amenities.length > 0 ? (
-                    <ul className="space-y-1">
+                    <div className="flex flex-wrap gap-2">
                       {amenities.amenities_data.building_amenities.map((amenity, index) => {
                         const amenityName = typeof amenity === 'string' ? amenity : amenity.name || amenity;
                         return (
-                          <li
+                          <Badge
                             key={index}
-                            className="text-base text-foreground leading-relaxed"
+                            variant="secondary"
+                            className="bg-secondary-100 text-secondary-700 rounded-full px-3 py-1.5 text-sm"
                           >
-                            • {amenityName}
-                          </li>
+                            {amenityName}
+                          </Badge>
                         );
                       })}
-                    </ul>
+                    </div>
                   ) : (
                     <p className="text-muted-foreground">
                       No building amenities listed.
@@ -1796,23 +1827,24 @@ export default function PropertyDetailPage() {
 
                 {/* Apartment Amenities */}
                 <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-3">
+                  <h3 className="text-lg font-semibold text-foreground mb-3 font-display">
                     Apartment
                   </h3>
                   {amenities.amenities_data.apartment_amenities && amenities.amenities_data.apartment_amenities.length > 0 ? (
-                    <ul className="space-y-1">
+                    <div className="flex flex-wrap gap-2">
                       {amenities.amenities_data.apartment_amenities.map((amenity, index) => {
                         const amenityName = typeof amenity === 'string' ? amenity : amenity.name || amenity;
                         return (
-                          <li
+                          <Badge
                             key={index}
-                            className="text-base text-foreground leading-relaxed"
+                            variant="secondary"
+                            className="bg-primary-100 text-primary-700 rounded-full px-3 py-1.5 text-sm"
                           >
-                            • {amenityName}
-                          </li>
+                            {amenityName}
+                          </Badge>
                         );
                       })}
-                    </ul>
+                    </div>
                   ) : (
                     <p className="text-muted-foreground">
                       No apartment amenities listed.

@@ -356,15 +356,23 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
     const roundedRating = Math.round(rating);
     return (
       <div className="flex items-center gap-1">
+        <svg width="0" height="0" className="absolute">
+          <defs>
+            <linearGradient id="competitorStarGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#FF1B8D" />
+              <stop offset="100%" stopColor="#7B1FA2" />
+            </linearGradient>
+          </defs>
+        </svg>
         {[1, 2, 3, 4, 5].map((star) => (
           <svg
             key={star}
             className={`w-5 h-5 ${
               star <= roundedRating
-                ? 'text-yellow-400 fill-current'
+                ? ''
                 : 'text-muted-foreground'
             }`}
-            fill="currentColor"
+            fill={star <= roundedRating ? 'url(#competitorStarGradient)' : 'currentColor'}
             viewBox="0 0 20 20"
           >
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -387,11 +395,16 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
       >
         {isWatched ? (
           <svg
-            className="w-5 h-5 text-yellow-400 fill-current"
-            fill="currentColor"
+            className="w-5 h-5"
             viewBox="0 0 20 20"
           >
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            <defs>
+              <linearGradient id="watchlistStarGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#FF1B8D" />
+                <stop offset="100%" stopColor="#7B1FA2" />
+              </linearGradient>
+            </defs>
+            <path fill="url(#watchlistStarGradient)" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
           </svg>
         ) : (
           <svg
@@ -708,9 +721,11 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
               </tr>
             </thead>
             <tbody>
-              {competitors.map((competitor) => {
+              {competitors.map((competitor, rowIndex) => {
                 const googleMapsUrl = getGoogleMapsUrl(competitor);
                 const hasWebsite = !!competitor.website;
+                const isHighestRated = rowIndex === 0 && title === 'Top Competitors' && competitor.rating !== null;
+                const maxDistance = Math.max(...competitors.map(c => c.distance_miles || 0), 0.1);
 
                 return (
                   <tr
@@ -728,6 +743,11 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
                         <span className="font-semibold text-foreground">
                           {competitor.competitor_name}
                         </span>
+                        {isHighestRated && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold text-white bg-[image:var(--gradient-primary)]">
+                            Top Rated
+                          </span>
+                        )}
                       </div>
                     </td>
 
@@ -756,9 +776,19 @@ export default function CompetitorsSection({ propertyId, minReviewCount = 10 }: 
 
                     {/* Distance Column */}
                     <td className="py-4 px-4">
-                      <span className="text-sm text-neutral-700">
-                        {formatDistance(competitor.distance_miles)}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-neutral-700 whitespace-nowrap">
+                          {formatDistance(competitor.distance_miles)}
+                        </span>
+                        {competitor.distance_miles !== null && (
+                          <div className="w-16 h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-[image:var(--gradient-primary)]"
+                              style={{ width: `${Math.min((competitor.distance_miles / maxDistance) * 100, 100)}%` }}
+                            />
+                          </div>
+                        )}
+                      </div>
                     </td>
 
                     {/* Address Column */}

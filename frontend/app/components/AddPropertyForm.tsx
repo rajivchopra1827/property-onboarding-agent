@@ -82,7 +82,7 @@ export default function AddPropertyForm({ onClose }: AddPropertyFormProps) {
   };
 
   return (
-    <Card className="shadow-md">
+    <Card className="shadow-md overflow-hidden" style={{ borderTop: '3px solid transparent', borderImage: 'linear-gradient(135deg, #FF1B8D 0%, #7B1FA2 100%) 1' }}>
       <CardHeader>
         <CardTitle className="text-2xl font-display text-secondary-700 dark:text-secondary-300">
           Add New Property

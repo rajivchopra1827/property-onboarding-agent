@@ -312,4 +312,3 @@ export interface CellHighlight {
   type: HighlightType;
   reason?: string;
 }
-

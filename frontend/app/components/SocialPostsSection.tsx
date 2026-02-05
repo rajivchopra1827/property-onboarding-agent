@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { Megaphone, Play, Download, AlertCircle, Video, Image as ImageIcon } from 'lucide-react';
+import { Megaphone, Play, Download, AlertCircle, Video, Image as ImageIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { PropertySocialPost, PropertyImage } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
@@ -167,6 +167,8 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
   const [generateAsVideos, setGenerateAsVideos] = useState(false);
   const [images, setImages] = useState<PropertyImage[]>([]);
   const [imageSelectionModalOpen, setImageSelectionModalOpen] = useState(false);
+  const [showErrorDetails, setShowErrorDetails] = useState(false);
+  const [errorDetails, setErrorDetails] = useState<string[]>([]);
 
   const fetchSocialPosts = async () => {
     try {
@@ -178,6 +180,10 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
         .select('*')
         .eq('property_id', propertyId)
         .order('created_at', { ascending: false });
+
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/f16407c2-76f5-4de5-b5c6-75f34b83f90e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SocialPostsSection.tsx:178',message:'Fetched posts from database',data:{error:error?.message,postsCount:data?.length,videoPostsCount:data?.filter((p:any)=>p.is_video).length,videoPosts:data?.filter((p:any)=>p.is_video).map((p:any)=>({id:p.id,is_video:p.is_video,video_url:p.video_url,theme:p.theme}))},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
 
       if (error) {
         console.error('Error fetching social posts:', error);
@@ -244,28 +250,93 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
 
       const result = await response.json();
 
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/f16407c2-76f5-4de5-b5c6-75f34b83f90e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SocialPostsSection.tsx:247',message:'API response received',data:{responseOk:response.ok,resultSuccess:result.success,resultKeys:Object.keys(result),videosCount:result.videos?.length,totalSucceeded:result.total_succeeded,totalFailed:result.total_failed,errorsCount:result.errors?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+
       if (!response.ok || !result.success) {
         throw new Error(result.error || 'Failed to generate videos');
       }
 
+      // Safely extract result values with defaults
+      const totalSucceeded = result.total_succeeded ?? 0;
+      const totalFailed = result.total_failed ?? 0;
+      const errors = result.errors ?? [];
+      const videos = result.videos ?? [];
+
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/f16407c2-76f5-4de5-b5c6-75f34b83f90e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SocialPostsSection.tsx:256',message:'Extracted result values',data:{totalSucceeded,totalFailed,errorsCount:errors.length,videosCount:videos.length,videoUrls:videos.map((v:any)=>v.video_url)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+
       // Show success message
-      const successMsg = result.total_succeeded > 0
-        ? `Successfully generated ${result.total_succeeded} video${result.total_succeeded !== 1 ? 's' : ''}${result.total_failed > 0 ? ` (${result.total_failed} failed)` : ''}`
+      const successMsg = totalSucceeded > 0
+        ? `Successfully generated ${totalSucceeded} video${totalSucceeded !== 1 ? 's' : ''}${totalFailed > 0 ? ` (${totalFailed} failed)` : ''}`
         : 'Video generation completed';
       setSuccessMessage(successMsg);
 
       // Show errors if any
-      if (result.errors && result.errors.length > 0) {
-        console.error('Video generation errors:', result.errors);
+      if (errors.length > 0) {
+        // Build user-friendly error details with safe error handling
+        const details: string[] = [];
+        try {
+          errors.forEach((err: any) => {
+            try {
+              let imageId = 'Unknown image';
+              if (err?.image_id) {
+                if (typeof err.image_id === 'string' && err.image_id.length > 0) {
+                  imageId = `Image ${err.image_id.slice(0, 8)}...`;
+                } else {
+                  imageId = 'Image (invalid ID)';
+                }
+              }
+              const errorMsg = err?.error || err?.message || 'Unknown error';
+              details.push(`${imageId}: ${errorMsg}`);
+            } catch (e) {
+              // If we can't parse this error, just stringify it
+              try {
+                details.push(`Error: ${JSON.stringify(err)}`);
+              } catch {
+                details.push('Error: Unable to display error details');
+              }
+            }
+          });
+        } catch (e) {
+          // If mapping fails entirely, show a generic message
+          details.push(`Failed to parse error details. ${totalFailed} video${totalFailed !== 1 ? 's' : ''} failed.`);
+        }
+        
+        setErrorDetails(details);
+        setShowErrorDetails(false); // Start collapsed
+        
+        // Show summary error message
+        const errorMsg = totalSucceeded > 0
+          ? `${totalFailed} video${totalFailed !== 1 ? 's' : ''} failed to generate. Click to see details.`
+          : `Video generation failed. Click to see details.`;
+        
+        setErrorMessage(errorMsg);
+      } else {
+        setErrorMessage(null); // Clear any previous errors
+        setErrorDetails([]);
+        setShowErrorDetails(false);
       }
 
       // Close modal and refresh posts
       setImageSelectionModalOpen(false);
-      setErrorMessage(null); // Clear any previous errors
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/f16407c2-76f5-4de5-b5c6-75f34b83f90e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SocialPostsSection.tsx:311',message:'About to refresh posts',data:{totalSucceeded,videosCount:videos.length,willRefreshIn:'1000ms'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
+      
       setTimeout(() => {
         fetchSocialPosts();
         // Clear success message after refresh
-        setTimeout(() => setSuccessMessage(null), 3000);
+        setTimeout(() => {
+          setSuccessMessage(null);
+          // Keep error message visible longer if there were errors
+          if (errors.length === 0) {
+            setErrorMessage(null);
+          }
+        }, errors.length > 0 ? 10000 : 3000);
       }, 1000);
     } catch (error) {
       console.error('Error generating videos:', error);
@@ -666,6 +737,14 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
           >
             {/* Mockup Image, Video, or Original Image */}
             <div className="relative bg-neutral-100">
+              {(() => {
+                // #region agent log
+                if (post.is_video) {
+                  fetch('http://127.0.0.1:7243/ingest/f16407c2-76f5-4de5-b5c6-75f34b83f90e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SocialPostsSection.tsx:669',message:'Rendering video post',data:{postId:post.id,is_video:post.is_video,video_url:post.video_url,video_generation_status:post.video_generation_status,hasVideoUrl:!!post.video_url},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+                }
+                // #endregion
+                return null;
+              })()}
               {post.is_video && post.video_url ? (
                 <VideoPlayer
                   src={post.video_url.startsWith('http') ? post.video_url : `/api/videos/${encodeURIComponent(post.video_url)}`}
@@ -875,7 +954,30 @@ export default function SocialPostsSection({ propertyId }: SocialPostsSectionPro
       {errorMessage && (
         <div className="px-6 pb-4">
           <div className="p-3 bg-error-light dark:bg-error/20 border border-error-dark dark:border-error rounded-lg">
-            <p className="text-sm text-error-dark dark:text-error">{errorMessage}</p>
+            <button
+              onClick={() => setShowErrorDetails(!showErrorDetails)}
+              className="w-full text-left flex items-center justify-between gap-2"
+            >
+              <p className="text-sm text-error-dark dark:text-error font-medium">{errorMessage}</p>
+              {errorDetails.length > 0 && (
+                showErrorDetails ? (
+                  <ChevronUp className="w-4 h-4 text-error-dark dark:text-error flex-shrink-0" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-error-dark dark:text-error flex-shrink-0" />
+                )
+              )}
+            </button>
+            {showErrorDetails && errorDetails.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-error-dark/20 dark:border-error/20">
+                <ul className="space-y-2">
+                  {errorDetails.map((detail, index) => (
+                    <li key={index} className="text-xs text-error-dark dark:text-error">
+                      • {detail}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       )}

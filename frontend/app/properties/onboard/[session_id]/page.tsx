@@ -199,7 +199,7 @@ export default function OnboardingProgressPage() {
   const isFailed = session.status === 'failed';
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-gradient-page">
       <div className="container mx-auto px-6 py-8 max-w-4xl">
         {/* Hero Section - Show during onboarding */}
         {!isCompleted && (
