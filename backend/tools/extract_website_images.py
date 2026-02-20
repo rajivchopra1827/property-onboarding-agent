@@ -8,8 +8,10 @@ Returns a list of images found across the website.
 
 import os
 import json
+import re
 import time
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional, Tuple
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 from apify_client import ApifyClient
 from firecrawl import Firecrawl
 from openai import OpenAI
@@ -46,6 +48,335 @@ def _log(location, message, data=None, hypothesis_id=None):
     except:
         pass
 # #endregion
+
+
+# Minimum dimensions for images to be considered useful for content generation
+MIN_IMAGE_WIDTH = 200
+MIN_IMAGE_HEIGHT = 200
+
+# Known CDN transform parameter patterns to strip for normalization
+# These are parameters that only affect size/quality/format, not the actual image content
+CLOUDINARY_TRANSFORM_PATTERN = re.compile(
+    r'/image/upload/'           # Cloudinary upload path prefix
+    r'(?:[^/]+/)*'              # One or more transform segments (e.g., q_auto,f_auto,c_fill,w_175/)
+    r'(?=s3/|v\d+/)'           # Until we hit the actual asset path (s3/ or version like v1234/)
+)
+
+# Common CDN resize query parameters to strip
+CDN_RESIZE_PARAMS = {
+    'w', 'h', 'width', 'height', 'resize', 'fit', 'crop', 'quality', 'q',
+    'dpr', 'ar', 'c', 'f', 'g', 'e', 'fl', 'auto', 'format', 'fm',
+    'sharp', 'blur', 'sat', 'bri', 'con', 'hue',
+}
+
+
+def normalize_image_url(url: str) -> str:
+    """
+    Normalize a CDN image URL to its canonical base form for deduplication.
+
+    Strips CDN transform parameters (resize, crop, quality, format) so that
+    the same image served at different resolutions maps to the same key.
+
+    Supports:
+    - RentCafe/Cloudinary (resource.rentcafe.com/image/upload/...)
+    - Cloudinary direct (res.cloudinary.com/.../image/upload/...)
+    - Generic CDN query parameter stripping
+
+    Args:
+        url: The full image URL
+
+    Returns:
+        Normalized URL string suitable for dedup comparison
+    """
+    if not url:
+        return url
+
+    # Handle Cloudinary-style URLs (RentCafe uses Cloudinary CDN)
+    # Pattern: .../image/upload/{transforms}/s3/{actual_path}
+    # We want to extract just the base image path after transforms
+    if '/image/upload/' in url:
+        # Find the base image path - everything after transform segments
+        # Transforms are comma-separated params like q_auto,f_auto,c_fill,w_175
+        # The actual path starts with s3/ or after all transform segments
+
+        parts = url.split('/image/upload/')
+        if len(parts) == 2:
+            base_domain = parts[0] + '/image/upload/'
+            rest = parts[1]
+
+            # Split remaining path into segments
+            segments = rest.split('/')
+
+            # Find where the actual image path starts
+            # Transform segments contain underscores with params like w_175, c_fill, etc.
+            # OR they look like x_0,y_0,w_3240,h_2160,c_crop (crop coordinates)
+            image_path_start = 0
+            for i, segment in enumerate(segments):
+                # If segment starts with s3 or v followed by digits, it's the real path
+                if segment.startswith('s3') or re.match(r'^v\d+$', segment):
+                    image_path_start = i
+                    break
+                # If segment contains a dot and looks like a filename, it's the real path
+                if '.' in segment and not any(p in segment for p in ['c_', 'w_', 'h_', 'f_', 'q_', 'g_', 'ar_', 'dpr_', 'fl_', 'e_', 'x_', 'y_']):
+                    image_path_start = i
+                    break
+                # If segment doesn't look like a transform param, assume it's path
+                if not re.match(r'^[a-z_]+[,]', segment) and not re.match(r'^[a-z]_', segment) and segment not in ('dpr_2',):
+                    # Check if it contains typical transform patterns
+                    has_transform = any(
+                        re.search(rf'(?:^|,){p}', segment)
+                        for p in ['c_', 'w_', 'h_', 'f_', 'q_', 'g_', 'ar_', 'dpr_', 'fl_', 'e_', 'x_', 'y_']
+                    )
+                    if not has_transform:
+                        image_path_start = i
+                        break
+
+            # Reconstruct with just base + actual path (no transforms)
+            actual_path = '/'.join(segments[image_path_start:])
+            if actual_path:
+                return base_domain + actual_path
+
+    # For non-Cloudinary URLs, strip common resize query parameters
+    parsed = urlparse(url)
+    if parsed.query:
+        params = parse_qs(parsed.query, keep_blank_values=True)
+        filtered_params = {
+            k: v for k, v in params.items()
+            if k.lower() not in CDN_RESIZE_PARAMS
+        }
+        new_query = urlencode(filtered_params, doseq=True)
+        return urlunparse(parsed._replace(query=new_query))
+
+    return url
+
+
+def get_cloudinary_delivery_width(url: str) -> int:
+    """
+    Extract the actual delivery width from a Cloudinary transform URL.
+
+    Cloudinary URLs can chain multiple transforms:
+      x_0,y_0,w_3240,h_2160,c_crop / q_auto,f_auto,c_limit,w_576 / s3/...
+    The first w_3240 is the crop region (source), not the output.
+    The delivery width is the w_ in the segment with c_limit, c_fill, or c_lfill.
+
+    Returns:
+        Delivery width in pixels, or 0 if not a Cloudinary URL / not found
+    """
+    if '/image/upload/' not in url:
+        return 0
+
+    parts = url.split('/image/upload/')
+    if len(parts) != 2:
+        return 0
+
+    # Split the transform chain into segments
+    segments = parts[1].split('/')
+
+    for segment in segments:
+        # Look for delivery commands (c_limit, c_fill, c_lfill)
+        if any(cmd in segment for cmd in ['c_limit', 'c_fill', 'c_lfill']):
+            # Extract w_ from this delivery segment
+            w_match = re.search(r'(?:^|,)w_(\d+)', segment)
+            if w_match:
+                return int(w_match.group(1))
+
+    return 0
+
+
+def get_best_resolution_image(images: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Given a list of image variants (same content, different resolutions),
+    return the one with the highest resolution.
+
+    For Cloudinary URLs, uses the delivery width (from c_limit/c_fill/c_lfill)
+    as the primary signal, since DB dimensions can be unreliable (they may
+    reflect crop regions or HTML attribute values rather than actual image size).
+
+    Args:
+        images: List of image dicts with url, width, height fields
+
+    Returns:
+        The image dict with the highest resolution
+    """
+    if not images:
+        return {}
+    if len(images) == 1:
+        return images[0]
+
+    def resolution_score(img):
+        url = img.get("url", "")
+
+        # Priority 1: Cloudinary delivery width (most reliable for CDN variants)
+        cdn_width = get_cloudinary_delivery_width(url)
+        if cdn_width > 0:
+            return cdn_width * 1000
+
+        # Priority 2: DB dimensions (but only if no CDN URL hints)
+        w = img.get("width") or 0
+        h = img.get("height") or 0
+        if w > 0 and h > 0:
+            return w * h
+        if w > 0:
+            return w * 1000
+        if h > 0:
+            return h * 1000
+
+        # Priority 3: Generic URL width hints (non-Cloudinary)
+        width_match = re.search(r'w[_=](\d+)', url)
+        if width_match:
+            return int(width_match.group(1)) * 1000
+
+        return 0  # Unknown resolution
+
+    return max(images, key=resolution_score)
+
+
+def is_image_too_small(img: Dict[str, Any]) -> bool:
+    """
+    Check if an image is below minimum dimensions for content generation.
+
+    Dimensions below 10px are treated as unknown/placeholder values (common in
+    lazy-loading patterns where HTML attributes are set to 1x1 or 3x3).
+
+    Args:
+        img: Image dict with optional width/height fields
+
+    Returns:
+        True if the image is too small to be useful
+    """
+    # Minimum plausible dimension - anything below this is a placeholder, not a real size
+    PLACEHOLDER_THRESHOLD = 10
+
+    width = img.get("width") or 0
+    height = img.get("height") or 0
+
+    # Treat very small values (0, 1, 2, 3...) as unknown/placeholder, not as actual dimensions
+    # These are commonly set by lazy-loading libraries or CSS tricks
+    if 0 < width < PLACEHOLDER_THRESHOLD:
+        width = 0  # Treat as unknown
+    if 0 < height < PLACEHOLDER_THRESHOLD:
+        height = 0  # Treat as unknown
+
+    # If both dimensions known (and plausible) and both are tiny, skip it
+    if width >= PLACEHOLDER_THRESHOLD and height >= PLACEHOLDER_THRESHOLD:
+        return width < MIN_IMAGE_WIDTH and height < MIN_IMAGE_HEIGHT
+
+    # If only width known (and plausible) and it's tiny
+    if width >= PLACEHOLDER_THRESHOLD and width < MIN_IMAGE_WIDTH:
+        return True
+
+    # If only height known (and plausible) and it's tiny
+    if height >= PLACEHOLDER_THRESHOLD and height < MIN_IMAGE_HEIGHT:
+        return True
+
+    # No reliable dimensions known - check URL for width hints
+    url = img.get("url", "")
+    width_match = re.search(r'w[_=](\d+)', url)
+    if width_match:
+        url_width = int(width_match.group(1))
+        if url_width >= PLACEHOLDER_THRESHOLD and url_width < MIN_IMAGE_WIDTH:
+            return True
+
+    # When dimensions are unknown, give the benefit of the doubt
+    return False
+
+
+def is_junk_image(img: Dict[str, Any]) -> bool:
+    """
+    Check if an image is likely junk (tracking pixel, widget, icon, etc.)
+    based on URL patterns and metadata.
+
+    Args:
+        img: Image dict with url, alt, width, height
+
+    Returns:
+        True if the image should be filtered out
+    """
+    url = (img.get("url") or "").lower()
+    alt = (img.get("alt") or "").lower()
+
+    # Known junk URL patterns
+    junk_patterns = [
+        'userway.org',          # Accessibility widget
+        'tracking', 'pixel',    # Tracking pixels
+        'spacer', 'blank',      # Spacer images
+        'favicon', 'icon',      # Icons
+        '/spinner',             # Loading spinners
+        'data:image/gif',       # 1px tracking GIFs
+        'data:image/png;base64,iVBOR',  # Tiny base64 images
+        'googletagmanager',     # Analytics
+        'facebook.com/tr',      # FB pixel
+        'doubleclick.net',      # Ad tracking
+        'google-analytics',     # Analytics
+    ]
+
+    for pattern in junk_patterns:
+        if pattern in url:
+            return True
+
+    # SVG files are usually icons/decorative (not property photos)
+    if url.endswith('.svg'):
+        return True
+
+    return False
+
+
+def deduplicate_images(images: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Deduplicate images by normalizing CDN URLs and keeping the highest-resolution
+    variant for each unique image.
+
+    Also filters out images that are too small or are junk.
+
+    Args:
+        images: List of image dicts
+
+    Returns:
+        Deduplicated and filtered list of images
+    """
+    # Group by normalized URL
+    groups: Dict[str, List[Dict[str, Any]]] = {}
+
+    filtered_junk = 0
+    filtered_small = 0
+
+    for img in images:
+        url = img.get("url", "")
+        if not url:
+            continue
+
+        # Filter junk images
+        if is_junk_image(img):
+            filtered_junk += 1
+            continue
+
+        # Filter tiny images
+        if is_image_too_small(img):
+            filtered_small += 1
+            continue
+
+        normalized = normalize_image_url(url)
+        if normalized not in groups:
+            groups[normalized] = []
+        groups[normalized].append(img)
+
+    # Pick best resolution from each group
+    result = []
+    dedup_count = 0
+    for normalized_url, variants in groups.items():
+        best = get_best_resolution_image(variants)
+        result.append(best)
+        if len(variants) > 1:
+            dedup_count += len(variants) - 1
+
+    if filtered_junk > 0:
+        print(f"  Filtered {filtered_junk} junk images (tracking, icons, SVGs)")
+    if filtered_small > 0:
+        print(f"  Filtered {filtered_small} images below {MIN_IMAGE_WIDTH}x{MIN_IMAGE_HEIGHT}px")
+    if dedup_count > 0:
+        print(f"  Deduplicated {dedup_count} resolution variants (kept highest-res)")
+
+    return result
 
 
 def get_firecrawl_client():
@@ -152,26 +483,34 @@ def extract_images_with_openai(html_content: str, page_url: str, client: OpenAI)
             messages=[
                 {
                     "role": "system",
-                    "content": "You are an expert at extracting image URLs from HTML content. Extract all image URLs found in img tags, background-image CSS properties, and any other image references. Include alt text, width, and height attributes when available. Return absolute URLs (resolve relative URLs to the page URL provided)."
+                    "content": """You are an expert at extracting property photography URLs from HTML content. Your goal is to find HIGH-QUALITY PROPERTY PHOTOS suitable for marketing content generation.
+
+EXTRACTION RULES:
+1. For <img> tags with srcset attributes, ONLY return the HIGHEST resolution URL from the srcset. Do NOT return multiple sizes of the same image.
+2. For <picture> elements with multiple <source> tags, ONLY return the largest/highest-quality source.
+3. SKIP these types of images entirely:
+   - Logos, brand marks, and watermarks
+   - Icons, social media badges, and navigation UI elements
+   - Tracking pixels, spacers, and 1x1 images
+   - Decorative textures, patterns, and background overlays
+   - Loading spinners and placeholder images
+   - SVG files (usually icons/decorative)
+   - Images smaller than 200px in either dimension
+4. FOCUS on property-related photography: interiors, exteriors, amenities, lifestyle shots, aerial views, floor plans, neighborhood scenes.
+5. Return absolute URLs (resolve relative URLs to the page URL provided).
+6. Include alt text, width, and height attributes when available in HTML."""
                 },
                 {
                     "role": "user",
-                    "content": f"""Extract all image URLs from the following HTML content. The page URL is: {page_url}
+                    "content": f"""Extract property photography URLs from the following HTML content. The page URL is: {page_url}
 
 HTML Content:
 {html_content}
 
-Extract all image URLs including:
-- img src attributes
-- background-image CSS properties
-- Any other image references
-
-For each image, include:
-- Full absolute URL (resolve relative URLs)
-- Alt text if available
-- Width and height if specified in HTML attributes
-
-Return only valid image URLs (jpg, jpeg, png, gif, webp, svg, bmp extensions or data URLs)."""
+Remember:
+- Only return the HIGHEST resolution variant when multiple sizes exist (srcset, picture elements)
+- Skip logos, icons, SVGs, tracking pixels, decorative textures, and tiny images
+- Focus on actual property photographs and floor plans"""
                 }
             ],
             response_format={
@@ -403,11 +742,11 @@ def _try_firecrawl_extraction(url, domain, force_refresh):
         openai_client = get_openai_client()
         all_images = []
         seen_urls = set()
-        
+
         for html_page in html_pages:
             page_url = html_page.get("url", url)
             html_content = html_page.get("html", "")
-            
+
             if html_content:
                 page_images = extract_images_with_openai(html_content, page_url, openai_client)
                 for img in page_images:
@@ -415,9 +754,12 @@ def _try_firecrawl_extraction(url, domain, force_refresh):
                     if img_url and img_url not in seen_urls:
                         all_images.append(img)
                         seen_urls.add(img_url)
-        
+
         if all_images:
-            print(f"  ✓ Firecrawl extraction successful: {len(all_images)} images found")
+            raw_count = len(all_images)
+            # Deduplicate resolution variants and filter junk/tiny images
+            all_images = deduplicate_images(all_images)
+            print(f"  ✓ Firecrawl extraction successful: {len(all_images)} images (from {raw_count} raw)")
             return all_images, True, None
         else:
             print(f"  ⚠ Firecrawl extraction returned no images")
@@ -619,7 +961,10 @@ def execute(arguments):
                         print(f"    ⚠ Error extracting images from {page_url}: {page_error}")
                         continue  # Continue with next page
                 
-                print(f"✓ Successfully extracted {len(images)} images using Apify fallback")
+                raw_count = len(images)
+                # Deduplicate resolution variants and filter junk/tiny images
+                images = deduplicate_images(images)
+                print(f"✓ Successfully extracted {len(images)} images using Apify fallback (from {raw_count} raw)")
             
             # Set total_images after both paths so it's always available
             total_images = len(images)

@@ -36,6 +36,9 @@ classify_images_module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(classify_images_module)
 classify_images = classify_images_module.classify_images
 
+# Quality threshold below which images are auto-hidden after classification
+AUTO_HIDE_QUALITY_THRESHOLD = 0.4
+
 
 def bulk_classify_images(
     property_id: Optional[str] = None,
@@ -168,18 +171,54 @@ def bulk_classify_images(
         else:
             failed_count += 1
             print(f"  ✗ Failed to update database for {image_url[:60]}...")
-    
+
+    # Auto-hide low-quality and uncategorized images
+    auto_hidden_count = 0
+    for result in results:
+        image_url = result.get("image_url")
+        if not image_url or "error" in result:
+            continue
+
+        image = image_map.get(image_url)
+        if not image:
+            continue
+
+        tags = result.get("tags", [])
+        quality_score = result.get("quality_score", 0.0)
+
+        should_hide = False
+        hide_reason = ""
+
+        # Auto-hide if quality is below threshold
+        if quality_score < AUTO_HIDE_QUALITY_THRESHOLD:
+            should_hide = True
+            hide_reason = f"quality {quality_score:.2f} < {AUTO_HIDE_QUALITY_THRESHOLD}"
+
+        # Auto-hide if uncategorized AND low confidence (likely not a useful property photo)
+        if not tags and result.get("confidence", 0.0) < 0.3:
+            should_hide = True
+            hide_reason = "uncategorized with low confidence"
+
+        if should_hide and not image.is_hidden:
+            success = repo.update_image_visibility(image.id, True)
+            if success:
+                auto_hidden_count += 1
+                print(f"  👁 Auto-hidden: {image_url[:60]}... ({hide_reason})")
+
     print(f"\n✓ Classification complete!")
     print(f"  Total images: {len(images)}")
     print(f"  Images to classify: {len(images_to_classify)}")
     print(f"  Successfully classified: {classified_count}")
     print(f"  Failed: {failed_count}")
-    
+    if auto_hidden_count > 0:
+        print(f"  Auto-hidden (low quality): {auto_hidden_count}")
+
     return {
         "total_images": len(images),
         "images_to_classify": len(images_to_classify),
         "classified": classified_count,
-        "failed": failed_count
+        "failed": failed_count,
+        "auto_hidden": auto_hidden_count
     }
 
 
